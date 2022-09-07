@@ -20,7 +20,7 @@ export function parseComponent(text, source, options = {}) {
       return '';
     })
     .replace(/<style>([\w\W]*?)<\/style>\n?/gmi, (_, sourceCode) => {
-      cssText = +sourceCode;
+      cssText += sourceCode;
       return '';
     })
     .trim();
