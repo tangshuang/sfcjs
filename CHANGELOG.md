@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 0.0.39 (2022-09-07)
+
+
+### Bug Fixes
+
+* fix style parse ([ccb59b4](https://github.com/tencent-cdc/sfcjs/commit/ccb59b4439889fd8d887c8d5d7e491a1eae21e37))
+
 ### 0.0.38 (2022-03-11)
 
 
