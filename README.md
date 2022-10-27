@@ -517,7 +517,7 @@ module.exports = function(content) {
 
 ### 场景四：UI 组件库
 
-我们开发了一套组件库，后来发现我们要为公司内不同团队提供 vue 和 react 的两套版本，这让我们维护起来非常不方便，我们采用了 sfcjs 作为视图引擎，利用 sfcjs 的 AOT 能力，通过 privilege 把所有组件做成 web components 实现了组件的跨框架使用，解决了我们维护多套版本的烦恼。于此同时，我们还发现 sfcjs 所写的组件，更像是一个 UI 组件的描述，我们把单一组件原子化，在一个文件中描述这一个组件的设计逻辑，这使得我们把设计理念更加有效的推行起来。案例：[tdesign-sfc](https://unpkg.com/tdesign-sfc/examples/t-button/index.html)
+我们开发了一套组件库，后来发现我们要为公司内不同团队提供 vue 和 react 的两套版本，这让我们维护起来非常不方便，我们采用了 sfcjs 作为视图引擎，利用 sfcjs 的 AOT 能力，通过 privilege 把所有组件做成 web components 实现了组件的跨框架使用，解决了我们维护多套版本的烦恼。于此同时，我们还发现 sfcjs 所写的组件，更像是一个 UI 组件的描述，我们把单一组件原子化，在一个文件中描述这一个组件的设计逻辑，这使得我们把设计理念更加有效的推行起来。案例：[tdesign-sfc](https://github.com/tencent-cdc/tdesign-sfc)
 
 ## 使用建议
 
