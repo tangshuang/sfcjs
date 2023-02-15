@@ -159,7 +159,7 @@ class SFC_Element extends HTMLElement {
 }
 
 
-export async function register(src, text) {
+export async function register(src, text, options) {
   const baseUrl = config('baseUrl');
   const absUrl = resolveUrl(baseUrl, src);
 
@@ -173,8 +173,9 @@ export async function register(src, text) {
   const { metas } = chunk;
   if (metas && metas.length) {
     metas.forEach((meta) => {
-      if (meta?.['@context'] === 'sfc:privilege') {
-        const tag = meta['@type'];
+      const act = options?.context || meta?.['@context'];
+      const tag = options?.type || meta?.['@type'];
+      if (act === 'sfc:privilege') {
         const { props, events } = meta;
         privilege(tag, {
           src: absUrl,
@@ -320,6 +321,18 @@ export async function privilege(tag, options, source) {
       append(rel, async () => {
         const { href } = rel;
         const absUrl = resolveUrl(baseUrl, href);
+        const macro = rel.getAttribute('macro');
+        if (macro) {
+          const [act, tag] = macro.split(':');
+          if (act && tag) {
+            const options = {
+              context: `sfc:${act}`,
+              type: tag,
+            };
+            await register(absUrl, null, options);
+            return;
+          }
+        }
         await register(absUrl);
       });
     });
