@@ -8,12 +8,20 @@
 <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
 
 <script>
+  import query from 'sfc:query';
+  import watch from 'sfc:watch';
+
   let a = 1;
 
   function plus() {
+    const prev = a;
     a ++;
-    $.get('.').then(console.log);
+    $(query('#jquery-placeholder')).text(prev);
   }
+
+  watch(a, (next, prev) => {
+    console.log('a changed:', next, prev);
+  });
 </script>
 
 <div>

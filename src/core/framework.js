@@ -66,6 +66,8 @@ export function define(url, deps, fn) {
 
 // ---------------------------------------------
 
+const watchConsumed = [];
+
 // 数据类型
 const REACTIVE_TYPE = Symbol('reactive');
 const PROP_TYPE = Symbol('prop');
@@ -165,7 +167,25 @@ class Element {
   }
 
   watch(vars, fn) {
-    const reactors = isArray(vars) ? vars : [vars];
+    const values = isArray(vars) ? vars : [vars];
+    const count = values.length;
+    const reactors = watchConsumed.slice(watchConsumed.length - count);
+    reactors.reverse();
+    // 每一次watch都清空，consumed只服务于watch
+    watchConsumed.length = 0;
+
+    // 检查是不是一致的，如果不是一致的，就直接跳过
+    for (let i = 0; i < count; i ++) {
+      const value = values[i];
+      const reactor = reactors[i];
+      if (!reactor) {
+        return;
+      }
+      if (reactor.value !== value) {
+        return;
+      }
+    }
+
     reactors.forEach((reactor) => {
       this.$watchers.push({
         reactor,
@@ -237,6 +257,8 @@ class Element {
       this.collector.add(reactor);
     }
 
+    watchConsumed.push(reactor);
+
     const { value } = reactor;
     return value;
   }
@@ -265,6 +287,7 @@ class Element {
       return getter();
     }
 
+    const prev = reactor.value;
     const value = getter(reactor.value);
     // eslint-disable-next-line no-param-reassign
     reactor.value = value;
@@ -282,7 +305,7 @@ class Element {
     // 触发观察副作用
     const watchers = this.$watchers.filter(item => inDeps(item.reactor, [reactor]));
     if (watchers.length) {
-      watchers.forEach(({ fn }) => fn());
+      watchers.forEach(({ fn }) => fn(value, prev));
     }
 
     this.queue.add(reactor);
@@ -1125,6 +1148,7 @@ export async function initComponent(absUrl, meta = {}) {
       }
       return callback(data);
     },
+    query: (selector) => element.root?.querySelector(selector),
     resolve: uri => resolveUrl(absUrl, uri),
     computed: getter => element.reactive(getter, true),
     update: element.queueUpdate.bind(element),
