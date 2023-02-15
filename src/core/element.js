@@ -171,11 +171,14 @@ export async function register(src, text, options) {
   await insertBlob(absUrl, chunk);
 
   const { metas } = chunk;
+  const macros = options?.macros;
+
   if (metas && metas.length) {
     metas.forEach((meta) => {
-      const act = options?.context || meta?.['@context'];
-      const tag = options?.type || meta?.['@type'];
-      if (act === 'sfc:privilege') {
+      const name = meta?.['@context'];
+      const macro = macros?.[name];
+      const tag = macro?.type || meta?.['@type'];
+      if (name === 'sfc:privilege') {
         const { props, events } = meta;
         privilege(tag, {
           src: absUrl,
@@ -321,17 +324,22 @@ export async function privilege(tag, options, source) {
       append(rel, async () => {
         const { href } = rel;
         const absUrl = resolveUrl(baseUrl, href);
-        const macro = rel.getAttribute('macro');
-        if (macro) {
-          const [act, tag] = macro.split(':');
-          if (act && tag) {
-            const options = {
-              context: `sfc:${act}`,
-              type: tag,
+        const attr = rel.getAttribute('macro');
+        if (attr) {
+          const items = attr.split(';');
+          const macros = {};
+          items.forEach((item) => {
+            const [act, type] = item.split(':');
+            const context = `sfc:${act}`;
+            macros[context] = {
+              context,
+              type,
             };
-            await register(absUrl, null, options);
-            return;
-          }
+          });
+          await register(absUrl, null, {
+            macros,
+          });
+          return;
         }
         await register(absUrl);
       });

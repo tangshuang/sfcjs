@@ -499,6 +499,8 @@ module.exports = function(content) {
 
 宏信息中，必须包含 @context 和 @type 字段，@context 的值以 sfc: 开头，后面跟上要调用的方法，目前仅支持 privilege 方法。@type 为该方法的第一个参数，对于 privilege 而言，就是传入的 tag 名。其他字段则合并为一个对象，作为第二个参数传给该方法（该对象会被框架补充，一般该对象只提供基础的配置信息）。
 
+*需要注意，单个组件的 @context 必须是唯一的，不能重复。*
+
 上面的示例代码中，宏片段告诉编译器当前组件将利用 privilege 创建 t-icon 标签。
 
 对于一个 sfc 文件而言，可能被多种情况使用，宏仅在两种情况下生效，一种是在 AOT 模式下开启了 `macro` 选项，另一种是通过 `<link rel="sfc" href="icon.htm" />` 引入基于 JIT 进行实时编译时生效。
@@ -509,7 +511,9 @@ module.exports = function(content) {
 <t-icon name="add"></t-icon>
 ```
 
-JIT 模式下，我们通过 `<link rel="sfc" />` 来引入一个 sfc 组件文件，在该 link 标签上，我们需要传入 rel="sfc", href 另外 macro 是可选的，它用于覆盖组件文件内部自己定义的宏片段，格式为 `macro="{@context}:{@type}"` 如果不传的话，将默认使用组件文件自己内部定义的宏片段，而通过 macro 进行覆盖，则可以避免当前页面中多个 customElement 重名的问题。
+JIT 模式下，我们通过 `<link rel="sfc" />` 来引入一个 sfc 组件文件，在该 link 标签上，我们需要传入 rel="sfc", href 另外 macro 是可选的，它用于覆盖组件文件内部自己定义的宏片段，格式为 `macro="{@context}:{@type};{@context}:{@type}"` 通过 `;` 传多个，每个使用 `:` 分开。如果不传的话，将默认使用组件文件自己内部定义的宏片段，而通过 macro 进行覆盖，则可以避免当前页面中多个 customElement 重名的问题。
+
+另外需要注意，如果 macro 属性传入的 @context 在组件文件内没有定义，将不生效，只有组件已经定义的，才能正常工作。
 
 基于上面这种模式，你可以轻松快速的创建自己的 web components，而不需要进行复杂的编译。
 
