@@ -1148,7 +1148,7 @@ export async function initComponent(absUrl, meta = {}) {
       }
       return callback(data);
     },
-    query: (selector) => element.root?.querySelector(selector),
+    query: selector => element.root?.querySelector(selector),
     resolve: uri => resolveUrl(absUrl, uri),
     computed: getter => element.reactive(getter, true),
     update: element.queueUpdate.bind(element),
