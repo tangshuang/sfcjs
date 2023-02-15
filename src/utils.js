@@ -109,6 +109,13 @@ export function createBlobUrl(contents, type = 'application/javascript') {
   return blobURL;
 }
 
+export function createScript(src, type) {
+  const script = document.createElement('script');
+  script.type = type || 'text/javascript';
+  script.src = src;
+  return script;
+}
+
 export function createScriptByBlob(contents) {
   const src = createBlobUrl(contents);
   const script = document.createElement('script');

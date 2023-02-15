@@ -1,0 +1,23 @@
+<script type="application/ld+json">
+  {
+    "@context": "sfc:privilege",
+    "@type": "external-script"
+  }
+</script>
+
+<script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
+
+<script>
+  let a = 1;
+
+  function plus() {
+    a ++;
+    $.get('.').then(console.log);
+  }
+</script>
+
+<div>
+  <span>{{a}}</span>
+  <button @click="plus()">plus</button>
+  <span id="jquery-placeholder"></span>
+</div>

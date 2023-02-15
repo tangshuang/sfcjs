@@ -5,6 +5,7 @@ import {
   insertScript,
   createReady,
   createBlobUrl,
+  createScript,
 } from '../utils';
 import {
   createProxy, isObject, isArray,
@@ -1186,11 +1187,23 @@ async function loadDepComponents(deps) {
     .then(chunk => insertBlob(url, chunk))));
 }
 
-export async function insertBlob(absUrl, { code, refs }) {
+export async function insertBlob(absUrl, { code, cssRefs, jsRefs }) {
+  if (jsRefs && jsRefs.length) {
+    await Promise.all(jsRefs.map(async (item) => {
+      const { src, url, type } = item;
+      if (document.querySelector(`script[src="${url}"]`)) {
+        return;
+      }
+      const script = createScript(url, type);
+      script.setAttribute('sfc-src', src);
+      await insertScript(script);
+    }));
+  }
+
   let contents = code;
 
-  if (refs && refs.length) {
-    refs.forEach(({ code, type, url, src }) => {
+  if (cssRefs && cssRefs.length) {
+    cssRefs.forEach(({ code, type, url, src }) => {
       const blob = sources[url] || createBlobUrl(code, type);
       contents = contents.replace(new RegExp(createSafeExp(`sfc:${src}`), 'gmi'), blob);
       if (!sources[url]) {
