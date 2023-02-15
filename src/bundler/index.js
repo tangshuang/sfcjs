@@ -75,7 +75,7 @@ export function bundle(file, options = {}) {
     });
 
     const context = parseComponent(fileContent, url, compileOptions);
-    const { components = {}, imports = [], refs, metas, ...info } = context;
+    const { components = {}, imports = [], cssRefs, metas, ...info } = context;
 
     const importSet = {};
     imports.forEach(([importDeclare, importSrc]) => {
@@ -130,9 +130,9 @@ export function bundle(file, options = {}) {
     if (!isIgnored(file)) {
       let fileCode = genComponent(info, url, compileOptions);
 
-      if (refs && refs.length) {
+      if (cssRefs && cssRefs.length) {
         const relativeTo = url;
-        refs.forEach(({ url, type, src }) => {
+        cssRefs.forEach(({ url, type, src }) => {
           if (type === 'text/css' && !stylesSet[url]) {
             let id = '';
             // TODO 假如 url 对应 file 和之前不一致怎么办？虽然是不应该发生的

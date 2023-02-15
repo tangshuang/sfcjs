@@ -1,0 +1,31 @@
+<script type="application/ld+json">
+  {
+    "@context": "sfc:privilege",
+    "@type": "external-script"
+  }
+</script>
+
+<script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
+
+<script>
+  import query from 'sfc:query';
+  import watch from 'sfc:watch';
+
+  let a = 1;
+
+  function plus() {
+    const prev = a;
+    a ++;
+    $(query('#jquery-placeholder')).text(prev);
+  }
+
+  watch(a, (next, prev) => {
+    console.log('a changed:', next, prev);
+  });
+</script>
+
+<div>
+  <span>{{a}}</span>
+  <button @click="plus()">plus</button>
+  <span id="jquery-placeholder"></span>
+</div>

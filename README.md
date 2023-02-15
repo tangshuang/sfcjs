@@ -434,6 +434,16 @@ function handleClick() {
 
 和 vue 很像，你必须使用 `event` 这个关键字来接住组件内部 emit 的第二个参数，例如上面代码中 `handleTrigger(event)` 中的 `event` 的值其实是 `111`。但和 vue 不同的是，你不可以只传一个 `handleTrigger` 就结束了，你必须在 @triggered 中传递完整的函数表达形式。
 
+**其他内部接口**
+
+除了 `props` 和 `emit`，你还可以使用下方接口：
+
+- resolve(uri: string): 获得某个uri的绝对地址
+- query(selector: string): 查询组件内的一个DOM元素
+- computed(getter: () => any): 创建一个依赖计算变量
+- update(): 手动更新视图
+- watch(vars, callback: (next, prev) => void): 监听某个/某些变量的变化，当变化发生时执行callback，只能在顶层watch，且无法取消watch
+
 ## AOT
 
 你可以通过 SFCJS 提供的编译工具实现运行前的编译。具体使用方法是使用 nodejs 运行如下脚本：

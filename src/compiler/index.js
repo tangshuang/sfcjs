@@ -7,12 +7,23 @@ export function parseComponent(text, source, options = {}) {
   let jsSource = '';
   let cssText = '';
   const metas = [];
+  const jsRefs = [];
 
   const html = text
     .replace(/<script(.*?)>([\w\W]*?)<\/script>\n?/gmi, (_, attrs, sourceCode) => {
       // 获取meta信息
       if (/ type=['"]application\/(ld\+)?json['"]/.test(attrs)) {
         metas.push(JSON.parse(sourceCode));
+        return '';
+      }
+
+      // 获取直接 <script src> 的脚本
+      if (/ src=['"].*?['"]/.test(attrs)) {
+        const [, src] = attrs.match(/src=['"](.*?)['"]/);
+        // type可能不存在
+        const [, type] = attrs.match(/type=['"](.*?)['"]/) || [];
+        const url = resolveUrl(source, src);
+        jsRefs.push({ url, src, type });
         return '';
       }
 
@@ -29,7 +40,7 @@ export function parseComponent(text, source, options = {}) {
   const { imports, deps, code: jsCode, components, vars } = jsContext;
 
   const cssContext = cssText ? parseCss(options.prettyCss ? options.prettyCss(cssText) : cssText, source, vars) : {};
-  const { code: cssCode, refs } = cssContext;
+  const { code: cssCode, refs: cssRefs } = cssContext;
   const htmlSource = options.prettyHtml ? options.prettyHtml(html) : html;
   const { code: htmlCode } = htmlSource ? parseHtml(htmlSource, components, vars, source) : {};
 
@@ -41,7 +52,8 @@ export function parseComponent(text, source, options = {}) {
     jsCode,
     cssCode,
     htmlCode,
-    refs,
+    cssRefs,
+    jsRefs,
   };
 }
 
@@ -62,11 +74,11 @@ export function genComponent({ imports = [], deps = [], jsCode, cssCode, htmlCod
   return res;
 }
 
-export async function loadRefs(refs, source) {
+export async function loadCssRefs(cssRefs, source) {
   const promises = [];
 
-  if (refs && refs.length) {
-    promises.push(...refs.map(async ({ type, url, src }) => {
+  if (cssRefs && cssRefs.length) {
+    promises.push(...cssRefs.map(async ({ type, url, src }) => {
       const text = await fetch(url).then(res => res.text());
       const code = type === 'text/css' ? replaceCssUrl(text, source) : text;
       return { code, type, url, src };
@@ -78,10 +90,10 @@ export async function loadRefs(refs, source) {
 
 export async function compileComponent(source, text, options) {
   const context = parseComponent(text, source, options);
-  const refs = await loadRefs(context.refs, source);
+  const cssRefs = await loadCssRefs(context.cssRefs, source);
   const code = genComponent(context, source, options);
-  const { metas } = context;
-  return { code, refs, metas };
+  const { metas, jsRefs } = context;
+  return { code, cssRefs, metas, jsRefs };
 }
 
 export async function loadComponent(source, options) {

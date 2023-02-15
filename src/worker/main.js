@@ -35,12 +35,12 @@ function run(data) {
         return;
       }
 
-      const { code, refs } = res;
+      const { code, cssRefs, jsRefs } = res;
       if (!code) {
         return;
       }
 
-      resolve({ code, refs });
+      resolve({ code, cssRefs, jsRefs });
       onComplete();
     };
     worker.addEventListener('message', onSuccess);

@@ -5,6 +5,7 @@ import {
   insertScript,
   createReady,
   createBlobUrl,
+  createScript,
 } from '../utils';
 import {
   createProxy, isObject, isArray,
@@ -64,6 +65,8 @@ export function define(url, deps, fn) {
 }
 
 // ---------------------------------------------
+
+const watchConsumed = [];
 
 // 数据类型
 const REACTIVE_TYPE = Symbol('reactive');
@@ -164,7 +167,25 @@ class Element {
   }
 
   watch(vars, fn) {
-    const reactors = isArray(vars) ? vars : [vars];
+    const values = isArray(vars) ? vars : [vars];
+    const count = values.length;
+    const reactors = watchConsumed.slice(watchConsumed.length - count);
+    reactors.reverse();
+    // 每一次watch都清空，consumed只服务于watch
+    watchConsumed.length = 0;
+
+    // 检查是不是一致的，如果不是一致的，就直接跳过
+    for (let i = 0; i < count; i ++) {
+      const value = values[i];
+      const reactor = reactors[i];
+      if (!reactor) {
+        return;
+      }
+      if (reactor.value !== value) {
+        return;
+      }
+    }
+
     reactors.forEach((reactor) => {
       this.$watchers.push({
         reactor,
@@ -236,6 +257,8 @@ class Element {
       this.collector.add(reactor);
     }
 
+    watchConsumed.push(reactor);
+
     const { value } = reactor;
     return value;
   }
@@ -264,6 +287,7 @@ class Element {
       return getter();
     }
 
+    const prev = reactor.value;
     const value = getter(reactor.value);
     // eslint-disable-next-line no-param-reassign
     reactor.value = value;
@@ -281,7 +305,7 @@ class Element {
     // 触发观察副作用
     const watchers = this.$watchers.filter(item => inDeps(item.reactor, [reactor]));
     if (watchers.length) {
-      watchers.forEach(({ fn }) => fn());
+      watchers.forEach(({ fn }) => fn(value, prev));
     }
 
     this.queue.add(reactor);
@@ -1124,6 +1148,7 @@ export async function initComponent(absUrl, meta = {}) {
       }
       return callback(data);
     },
+    query: selector => element.root?.querySelector(selector),
     resolve: uri => resolveUrl(absUrl, uri),
     computed: getter => element.reactive(getter, true),
     update: element.queueUpdate.bind(element),
@@ -1186,11 +1211,23 @@ async function loadDepComponents(deps) {
     .then(chunk => insertBlob(url, chunk))));
 }
 
-export async function insertBlob(absUrl, { code, refs }) {
+export async function insertBlob(absUrl, { code, cssRefs, jsRefs }) {
+  if (jsRefs && jsRefs.length) {
+    await Promise.all(jsRefs.map(async (item) => {
+      const { src, url, type } = item;
+      if (document.querySelector(`script[src="${url}"]`)) {
+        return;
+      }
+      const script = createScript(url, type);
+      script.setAttribute('sfc-src', src);
+      await insertScript(script);
+    }));
+  }
+
   let contents = code;
 
-  if (refs && refs.length) {
-    refs.forEach(({ code, type, url, src }) => {
+  if (cssRefs && cssRefs.length) {
+    cssRefs.forEach(({ code, type, url, src }) => {
       const blob = sources[url] || createBlobUrl(code, type);
       contents = contents.replace(new RegExp(createSafeExp(`sfc:${src}`), 'gmi'), blob);
       if (!sources[url]) {
