@@ -1,0 +1,63 @@
+<script type="application/ld+json">
+  {
+    "@context": "sfc:privilege",
+    "@type": "progress-bar",
+    "props": [
+      "width",
+      "height",
+      "value",
+      "font-size"
+    ]
+  }
+</script>
+
+<script>
+  import props from 'sfc:props';
+
+  let width = props.width || 200;
+  let height = props.height || 24;
+  let value = props.value || 0;
+  let percent = width * value / 100;
+  let fontSize = props.fontSize || 12;
+</script>
+
+<style>
+.progress-bar {
+  width: ([width])px;
+  height: ([height])px;
+  border-radius: 5px;
+  overflow: hidden;
+  isolation: isolate;
+  position: relative;
+}
+.progress-bar::before {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  font-size: ([fontSize])px;
+  line-height: ([height])px;
+  content: attr(data-text);
+  background-color: #baffe8;
+  color: #15c48a;
+  text-align: center;
+}
+.progress-bar::after {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  font-size: ([fontSize])px;
+  line-height: ([height])px;
+  content: attr(data-text);
+  background-color: #15c48a;
+  color: #baffe8;
+  text-align: center;
+  clip: rect(0, ([percent])px, ([height])px, 0);
+  transition: clip .2s;
+}
+</style>
+
+<div class="progress-bar" data-text="正在安装 {{value}}%"></div>

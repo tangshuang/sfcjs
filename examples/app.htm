@@ -51,20 +51,20 @@
   /* @fns {
     some(color, age) {
       outline: none;
-      color: [[color]];
-      font-size: [[age]]px;
+      color: ([color]);
+      font-size: ([age])px;
     }
   } */
 
 /*
 
-  @if [[age % 5 === 0 && age > 10]] {
+  @if ([age % 5 === 0 && age > 10]) {
     .age {
       font-size: 24px;
-      fns: some(red, [[age]]), some(red, age);
+      fns: some(red, ([age])), some(red, age);
     }
   }
-  @elseif [[age < 5]] {
+  @elseif ([age < 5]) {
     .age {
       font-size: 5px;
     }
@@ -93,9 +93,9 @@
     }
   }
 
-  /* @for color,index of [[colors]] {
-    .age-[[index + 10]] {
-      color: [[color]];
+  /* @for color,index of ([colors]) {
+    .age-([index + 10]) {
+      color: ([color]);
     }
   } */
 
