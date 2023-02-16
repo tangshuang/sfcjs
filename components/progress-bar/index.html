@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+
+<script src="../../index.js"></script>
+<link rel="sfc" href="./progress-bar.htm" />
+
+<progress-bar :value="45" :width="400" :height="40" :font-size="20" id="progress-bar"></progress-bar>
+
+<input type="range" min="0" max="100" id="progress-data" />
+
+<script>
+  const bar = document.querySelector('#progress-bar');
+  const data = document.querySelector('#progress-data');
+
+  data.addEventListener('change', (e) => {
+    const value = e.target.value;
+    bar.setAttribute(':value', value);
+  });
+</script>

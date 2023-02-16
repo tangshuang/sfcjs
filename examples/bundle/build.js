@@ -2,12 +2,15 @@ const { bundle } = require('../../bundler');
 const path = require('path');
 const fs = require('fs');
 
-const code = bundle(path.resolve(__dirname, './index.htm'), {
-  outputDir: __dirname,
-  ignores: [
-    path.resolve(__dirname, './index.htm'),
-  ],
-  macro: true,
-});
+function build(entry, output) {
+  const code = bundle(entry, {
+    outputDir: __dirname,
+    ignores: [
+      entry,
+    ],
+    macro: true,
+  });
+  fs.writeFileSync(output, code);
+}
 
-fs.writeFileSync(path.resolve(__dirname, 'bundle.js'), code);
+build(path.resolve(__dirname, './index.htm'), path.resolve(__dirname, 'bundle.js'));

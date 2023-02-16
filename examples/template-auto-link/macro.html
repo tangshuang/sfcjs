@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+
+<script src="../../index.js"></script>
+
+<template sfc-src="./some.htm">
+  <script type="application/ld+json">
+    {
+      "@context": "sfc:privilege",
+      "@type": "t-some"
+    }
+  </script>
+
+  <script>
+    let a = 1;
+
+    function plus() {
+      a ++;
+    }
+  </script>
+
+  <div>
+    <span>{{a}}</span>
+    <button @click="plus()">add</button>
+  </div>
+</template>
+
+<t-some></t-some>

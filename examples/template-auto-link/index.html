@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 
+<script src="../../index.js"></script>
+
 <template sfc-src="./sfcjs-test.htm">
   <script>
     let a = 1;
@@ -10,15 +12,9 @@
   </script>
 
   <div>
-    {{a}}
-
+    <span>{{a}}</span>
     <button @click="grow()">grow</button>
-  </div>
-
-  <div>
-    xxx
   </div>
 </template>
 
 <t-sfc src="./sfcjs-test.htm"></t-sfc>
-<script src="../dist/index.js"></script>
