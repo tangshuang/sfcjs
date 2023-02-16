@@ -761,7 +761,8 @@ export function parseCss(sourceCode, source, givenVars) {
     return name === str ? `'${str}'` : `\`${str}\``;
   };
   const createValue = (value, direct) => {
-    const interpolated = value.replace(/var\(['"]\{\{(.*?)\}\}['"]\)/g, (_, $1) => `\${${consumeVars($1)}}`)
+    const interpolated = value
+      .replace(/var\(['"]\{\{(.*?)\}\}['"]\)/g, (_, $1) => `\${${consumeVars($1)}}`)
       .replace(/\(\[(.*?)\]\)/g, (_, $1) => `\${${consumeVars($1)}}`);
 
     let res = '';
@@ -842,12 +843,21 @@ export function parseCss(sourceCode, source, givenVars) {
     return properties;
   };
 
+  const genValue = (value) => {
+    if (/^'.*?'$/.test(value)) {
+      return `\`${value.substring(1, value.length - 1)}\``;
+    }
+    if (/\$\{.*?\}/.test(value)) {
+      return `() => ${value}`;
+    }
+    return value;
+  };
   const createDeclare = (declarations) => {
     const properties = createProps(declarations);
     const props = [];
     each(properties, (item) => {
       const { name, value } = item;
-      props.push(`${name}: ${/\$\{.*?\}/.test(value) ? `() => ${value}` : value}`);
+      props.push(`${name}: ${genValue(value)}`);
     });
     return props;
   };
@@ -865,7 +875,7 @@ export function parseCss(sourceCode, source, givenVars) {
         }
         rule += fns.join(',');
       } else {
-        props.push(`${name}: ${/\$\{.*?\}/.test(value) ? `() => ${value}` : value}`);
+        props.push(`${name}: ${genValue(value)}`);
       }
     });
 

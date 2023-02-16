@@ -45,7 +45,11 @@
   }
 
   .age {
-    color: rgb(var('{{ age * 5 > 255 ? 255 : age * 5 }}'), var('{{ age * 10 > 255 ? 255 : age * 10 }}'), var('{{ age * 3 > 255 ? 255 : age * 3 }}'));
+    color: rgb(
+      var('{{ age * 5 > 255 ? 255 : age * 5 }}'),
+      var('{{ age * 10 > 255 ? 255 : age * 10 }}'),
+      var('{{ age * 3 > 255 ? 255 : age * 3 }}')
+    );
   }
 
   /* @fns {
