@@ -350,7 +350,8 @@ export async function privilege(tag, options, source) {
     templates.forEach((el) => {
       append(el, async () => {
         const src = el.getAttribute('sfc-src');
-        const absUrl = resolveUrl(baseUrl, src);
+        const uri = src || `/-/${Date.now()}`;
+        const absUrl = resolveUrl(baseUrl, uri);
         const text = el.innerHTML;
         await register(absUrl, text);
       });
