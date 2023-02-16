@@ -66,8 +66,6 @@ export function define(url, deps, fn) {
 
 // ---------------------------------------------
 
-const watchConsumed = [];
-
 // 数据类型
 const REACTIVE_TYPE = Symbol('reactive');
 const PROP_TYPE = Symbol('prop');
@@ -161,6 +159,8 @@ class Element {
   $queueUpdating = false
   $isMounted = false
   $watchers = []
+  $comsumeRecords = [];
+  $consumeTimer = null;
 
   constructor(props) {
     this.props = Object.freeze(props);
@@ -169,10 +169,10 @@ class Element {
   watch(vars, fn) {
     const values = isArray(vars) ? vars : [vars];
     const count = values.length;
-    const reactors = watchConsumed.slice(watchConsumed.length - count);
+    const reactors = this.$comsumeRecords.slice(this.$comsumeRecords.length - count);
     reactors.reverse();
     // 每一次watch都清空，consumed只服务于watch
-    watchConsumed.length = 0;
+    this.$comsumeRecords.length = 0;
 
     // 检查是不是一致的，如果不是一致的，就直接跳过
     for (let i = 0; i < count; i ++) {
@@ -257,7 +257,11 @@ class Element {
       this.collector.add(reactor);
     }
 
-    watchConsumed.push(reactor);
+    this.$comsumeRecords.push(reactor);
+    clearTimeout(this.$consumeTimer);
+    this.$consumeTimer = setTimeout(() => {
+      this.$comsumeRecords.length = 0;
+    }, 60000);
 
     const { value } = reactor;
     return value;
