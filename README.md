@@ -272,6 +272,28 @@ SFCJS 支持在应用（而非组件）当前 html 中用 template 提前定义�
 
 在上面代码中，通过含有 `sfc-src` 的 `template` 提前定义了一个组件，然后在下面用 `t-sfc` 使用该组件，这样可以不用通过异步请求来拉取组件代码。
 
+同时，sfcjs 也支持直接在 auto template 中使用宏，由于宏中可以定义具体 tag，此时，你甚至可以不用传入具体的 sfc-src，让它自己内部生成。
+
+```html
+<head>
+  <script src="https://unpkg.com/sfcjs"></script>
+  <template sfc-src>
+    <script type="application/ld+json">
+      {
+        "@context": "sfc:privilege",
+        "@type": "t-some"
+      }
+    </script>
+    <script>
+      let a = 1;
+    </script>
+    <span>{{a}}</span>
+  </template>
+<head>
+
+<t-some></t-some>
+```
+
 **Auto Link**
 
 SFCJS 支持在当前 html 中使用 `link[rel=sfc]` 自动载入组件。例如：

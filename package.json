@@ -1,6 +1,6 @@
 {
   "name": "sfcjs",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "轻便的前端JIT视图层驱动框架",
   "main": "index.js",
   "scripts": {
