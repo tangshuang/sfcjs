@@ -99,7 +99,7 @@ export function parseHtml(sourceCode, components, givenVars, source) {
 
           const [, _item, , _index, _items] = matched;
           const [item, index, items] = [_item.trim(), _index ? _index.trim() : null, _items.trim()];
-          directives.push(['repeat', `{items:${items},item:'${item}'${index ? `,index:'${index}'` : ''}}`, true]);
+          directives.push(['repeat', `{items:${items},itemsKey:'${items}',itemKey:'${item}'${index ? `,indexKey:'${index}'` : ''}}`, true]);
           args.push(...[item, index].filter(item => !!item));
         } else if (k === 'key') {
           directives.push(['key', value]);

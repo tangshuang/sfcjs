@@ -1,0 +1,23 @@
+<script>
+    let items = [];
+
+    function updateList() {
+        items = [
+            {
+                id: 1,
+                name: 'tomy' + Date.now(),
+            },
+            {
+                id: 2,
+                name: 'holy' + Date.now(),
+            },
+        ];
+    }
+</script>
+
+<div>
+    <button @click="updateList()">update list</button>
+    <ul>
+        <li (repeat)="item in items" (key)="item.id">{{ item.name }}</li>
+    </ul>
+</div>

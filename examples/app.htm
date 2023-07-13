@@ -2,6 +2,7 @@
   import SomeComponent from 'sfc:./some.htm';
   import emit from 'sfc:emit';
   import { dog } from 'sfc:props';
+  import RepeatList from 'sfc:./repeat.htm';
 
   import { each } from '../src/utils.js';
 
@@ -149,4 +150,6 @@
   </div>
 
   <t-sfc (src)="./some2.htm"></t-sfc>
+
+  <repeat-list></repeat-list>
 </div>

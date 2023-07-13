@@ -595,30 +595,58 @@ class Element {
           const {
             repeat: repeatGetter,
           } = meta;
-          const [{ items, item: itemKey, index: indexKey }, repeatDeps] = this.collect(() => repeatGetter());
+          const [{ items, itemsKey, itemKey, indexKey }, repeatDeps] = this.collect(() => repeatGetter());
+          const removeList = [...prevList];
 
           neureList.deps = repeatDeps;
           neureList.repeat = items;
 
           const neures = [];
+          // 将repeat从meta中去除，因为单个item在渲染时不能再提供repeat，否则会走特殊的children逻辑
           const { repeat, ...others } = meta;
+          const { key: keyGetter } = meta;
 
           if (!isShallowEqual(items, prevItems)) {
+            const updateNeure = (index) => {
+              const neure = removeList[index];
+              // 更新args
+              neure.args = Object.assign(neure.args || {}, args);
+              if (neures.length) {
+                neures[neures.length - 1].sibling = neure;
+              }
+              neures.push(neure);
+              // 从原来的列表中删除，剩下来的就是将从DOM中移除的
+              removeList.splice(index, 1);
+            };
             each(items, (item, index) => {
               const args = {
+                [itemsKey]: items,
                 [itemKey]: item,
                 [indexKey]: index,
               };
-              const prevIndex = prevItems.indexOf(item);
 
+              // 基于对象本身的引用来判断
+              const prevIndex = prevItems.indexOf(item);
               if (prevIndex > -1) {
-                const prevNeure = prevList[index];
-                Object.assign(prevNeure.args, args); // 更新args
-                neures.push(prevNeure);
-                prevList.splice(index, 1); // 从原来的列表中删除
-                return;
+                const prevNeure = prevList[prevIndex];
+                const index = removeList.indexOf(prevNeure);
+                if (index > -1) {
+                  updateNeure(prevIndex);
+                  return;
+                }
               }
 
+              // 基于key来决定
+              if (keyGetter) {
+                const key = keyGetter(args);
+                const prevIndex = removeList.findIndex(item => item.key === key);
+                if (prevIndex > -1) {
+                  updateNeure(prevIndex);
+                  return;
+                }
+              }
+
+              // 创建新的节点
               const neure = this.initNeure(type, others, children, args);
               if (neures.length) {
                 neures[neures.length - 1].sibling = neure;
@@ -634,16 +662,19 @@ class Element {
             neureList.list = neures;
 
             const sibling = decideby(() => {
-              const firstNode = prevList.find(item => item.visible && item.node);
-              if (firstNode) {
-                return firstNode;
+              const firstNeure = removeList.find(item => item.visible && item.node);
+              if (firstNeure) {
+                return firstNeure.node;
               }
               const sibling = findSibling(neureList);
               return sibling;
             });
+
+            // 更新节点
             each(neures, (neure) => {
               if (neure.node) {
                 parentNode.insertBefore(neure.node, sibling);
+                this.updateNeure(neure, changed);
               } else {
                 this.mountNeure(neure, parentNode);
               }
@@ -659,7 +690,7 @@ class Element {
                 }
               });
             };
-            removeChildren(prevList);
+            removeChildren(removeList);
           }
         }
       } else if (isInstanceOf(neure, TextNeure)) {
@@ -983,7 +1014,7 @@ class Element {
         args,
       });
       const neures = [];
-      const [{ items, item: itemKey, index: indexKey }, repeatDeps] = this.collect(() => repeatGetter());
+      const [{ items, itemsKey, itemKey, indexKey }, repeatDeps] = this.collect(() => repeatGetter());
       neureList.deps = repeatDeps;
       neureList.repeat = items;
 
@@ -991,6 +1022,7 @@ class Element {
 
       each(items, (item, index) => {
         const args = {
+          [itemsKey]: items,
           [itemKey]: item,
           [indexKey]: index,
         };
@@ -1039,6 +1071,7 @@ class Element {
     }
 
     const neure = createNeure(type, meta, childrenGetter, args, type === 'svg' || this.$$inSvg ? SvgNeure : Neure);
+    this.genChildren(neure);
     return neure;
   }
 
