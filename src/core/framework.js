@@ -74,31 +74,31 @@ const TEXT_NODE = Symbol('text');
 
 class Neure {
   // 固定信息
-  type = null
-  meta = null
-  children = null // 内部元素的获取函数
+  type = null;
+  meta = null;
+  children = null; // 内部元素的获取函数
   // 实时信息，当前状态，用于下一次渲染
-  key = null
-  visible = true
-  attrs = null
-  props = null
-  events = null
-  bind = null
-  className = null
-  style = null
+  key = null;
+  visible = true;
+  attrs = null;
+  props = null;
+  events = null;
+  bind = null;
+  className = null;
+  style = null;
   // 记录内函数的参数
-  args = null
+  args = null;
   // DOM 节点
-  node = null
-  parentNode = null
+  node = null;
+  parentNode = null;
   // 链表关系
-  child = null // 第一个字节点
-  sibling = null // 第一个兄弟节点
-  parent = null // 父节点
+  child = null; // 第一个字节点
+  sibling = null; // 第一个兄弟节点
+  parent = null; // 父节点
 
   // 记录依赖
   // 不同的类型依赖生效的域不同，普通节点对meta生效，文本节点对children生效，list节点对list生效
-  deps = []
+  deps = [];
 
   set(data) {
     Object.assign(this, data);
@@ -197,13 +197,6 @@ class Element {
   reactive(getter, computed) {
     const [value, deps] = computed ? this.collect(() => getter()) : [getter(), []];
 
-    const reactor = {
-      $$typeof: REACTIVE_TYPE,
-      value,
-      getter,
-      $id: createRandomString(8),
-    };
-
     const create = value => createProxy(value, {
       get: (_, value) => {
         if (this.$isCollecting) {
@@ -231,8 +224,13 @@ class Element {
       },
     });
 
-    // 使它具有响应式能力
-    reactor.value = create(value);
+    const reactor = {
+      $$typeof: REACTIVE_TYPE,
+      // 使它具有响应式能力
+      value: create(value),
+      getter,
+      $id: createRandomString(8),
+    };
 
     if (deps.length) {
       this.relations.push({

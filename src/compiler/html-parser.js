@@ -42,8 +42,8 @@ export function parseHtml(sourceCode, components, givenVars, source) {
   //   },
   // })
 
-  const interpolate = (str) => {
-    const res = str.replace(/{{(.*?)}}/g, (_, $1) => `\${${consumeVars($1)}}`);
+  const interpolate = (str, vars) => {
+    const res = str.replace(/{{(.*?)}}/g, (_, $1) => `\${${consumeVars($1, vars)}}`);
     return `\`${res}\``;
   };
 
@@ -167,7 +167,7 @@ export function parseHtml(sourceCode, components, givenVars, source) {
     return [data ? `{${data}}` : '', args];
   };
 
-  const build = (astNode) => {
+  const build = (astNode, vars = {}) => {
     const [type, props, ...children] = astNode;
 
     if (!/^[a-zA-Z]/.test(type)) {
@@ -184,15 +184,16 @@ export function parseHtml(sourceCode, components, givenVars, source) {
 
     const subArgs = args.filter(item => !!item);
     const subArgsStr = subArgs.length ? `{${subArgs.join(',')}}` : '';
+    const subVars = subArgs.reduce((map, key) => ({ ...map, [key]: 1 }), { ...vars });
 
     if (children.length && children.some(item => !!item)) {
       each(children, (child) => {
         if (typeof child === 'string') {
-          const text = interpolate(child);
+          const text = interpolate(child, subVars);
           const node = `_sfc.t(() => ${text})`;
           subs.push(node);
         } else {
-          const node = build(child);
+          const node = build(child, subVars);
           if (node !== null) {
             subs.push(node);
           }
