@@ -69,6 +69,7 @@ export function define(url, deps, fn) {
 // 数据类型
 const REACTIVE_TYPE = Symbol('reactive');
 const PROP_TYPE = Symbol('prop');
+const LIST_ITEM_TYPE = Symbol('listItem');
 // 节点类型
 const TEXT_NODE = Symbol('text');
 
@@ -247,7 +248,7 @@ class Element {
       return reactor;
     }
 
-    if (reactor.$$typeof !== REACTIVE_TYPE) {
+    if (![REACTIVE_TYPE, LIST_ITEM_TYPE].includes(reactor.$$typeof)) {
       return reactor;
     }
 
@@ -260,6 +261,16 @@ class Element {
     this.$consumeTimer = setTimeout(() => {
       this.$comsumeRecords.length = 0;
     }, 60000);
+
+    if (reactor.$$typeof === LIST_ITEM_TYPE) {
+      const { items, index } = reactor;
+      const value = items[index];
+      if (value !== reactor.value) {
+        // eslint-disable-next-line no-param-reassign
+        reactor.value = value;
+      }
+      return value;
+    }
 
     const { value } = reactor;
     return value;
@@ -398,7 +409,7 @@ class Element {
       if (this.brushes && this.brushesAt) {
         const brushesContent = this.brushes.map((brush) => {
           const { id, getter, deps, value } = brush;
-          if (deps.length && inDeps(changed, deps)) {
+          if (isDepsChanged(deps, changed)) {
             const [next, nextDeps] = this.collect(getter);
             // eslint-disable-next-line no-param-reassign
             brush.value = next;
@@ -584,7 +595,7 @@ class Element {
       let notNeedWalkToChild = false;
 
       if (isInstanceOf(neure, NeureList)) {
-        if (!changed || (deps.length && inDeps(changed, deps))) {
+        if (!changed || isDepsChanged(deps, changed)) {
           const neureList = neure;
           const {
             repeat: prevItems,
@@ -593,7 +604,7 @@ class Element {
           const {
             repeat: repeatGetter,
           } = meta;
-          const [{ items, itemsKey, itemKey, indexKey }, repeatDeps] = this.collect(() => repeatGetter());
+          const [{ items, itemKey, indexKey }, repeatDeps] = this.collect(() => repeatGetter());
           const removeList = [...prevList];
 
           neureList.deps = repeatDeps;
@@ -617,9 +628,17 @@ class Element {
               removeList.splice(index, 1);
             };
             each(items, (item, index) => {
+              const reactor = {
+                $$typeof: LIST_ITEM_TYPE,
+                get items() {
+                  const { items } = repeatGetter();
+                  return items;
+                },
+                index,
+                value: item,
+              };
               const args = {
-                [itemsKey]: items,
-                [itemKey]: item,
+                [itemKey]: reactor,
                 [indexKey]: index,
               };
 
@@ -692,7 +711,7 @@ class Element {
           }
         }
       } else if (isInstanceOf(neure, TextNeure)) {
-        if (!changed || (deps?.length && inDeps(changed, deps))) {
+        if (!changed || isDepsChanged(deps, changed)) {
           this.collect(() => {
             const text = children();
             // eslint-disable-next-line no-param-reassign
@@ -775,7 +794,7 @@ class Element {
       } else {
         let showOut = false;
 
-        if (!changed || (deps?.length && inDeps(changed, deps))) {
+        if (!changed || isDepsChanged(deps, changed)) {
           this.collect(() => {
             const {
               class: classGetter,
@@ -1012,16 +1031,24 @@ class Element {
         args,
       });
       const neures = [];
-      const [{ items, itemsKey, itemKey, indexKey }, repeatDeps] = this.collect(() => repeatGetter());
+      const [{ items, itemKey, indexKey }, repeatDeps] = this.collect(() => repeatGetter());
       neureList.deps = repeatDeps;
       neureList.repeat = items;
 
       const { repeat, ...others } = meta;
 
       each(items, (item, index) => {
+        const reactor = {
+          $$typeof: LIST_ITEM_TYPE,
+          get items() {
+            const { items } = repeatGetter();
+            return items;
+          },
+          index,
+          value: item,
+        };
         const args = {
-          [itemsKey]: items,
-          [itemKey]: item,
+          [itemKey]: reactor,
           [indexKey]: index,
         };
         const neure = this.initNeure(type, others, childrenGetter, args);
@@ -1334,6 +1361,10 @@ function uniqueDeps(deps) {
 }
 
 function inDeps(dep, deps) {
+  if (!deps || !deps.length) {
+    return false;
+  }
+
   if (isArray(dep)) {
     return dep.some(item => inDeps(item, deps));
   }
@@ -1350,6 +1381,18 @@ function inDeps(dep, deps) {
   }
 
   return false;
+}
+
+function isDepsChanged(deps, changed) {
+  if (!deps || !deps.length) {
+    return false;
+  }
+
+  if (deps.some(item => item.$$typeof === LIST_ITEM_TYPE && item.items[item.index] !== item.value)) {
+    return true;
+  }
+
+  return inDeps(changed, deps);
 }
 
 function findSibling(neure) {

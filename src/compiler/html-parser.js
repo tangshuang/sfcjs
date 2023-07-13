@@ -47,7 +47,7 @@ export function parseHtml(sourceCode, components, givenVars, source) {
     return `\`${res}\``;
   };
 
-  const create = (obj, type) => {
+  const create = (obj, type, vars = {}) => {
     const attrs = [];
     const props = [];
     const events = [];
@@ -65,7 +65,7 @@ export function parseHtml(sourceCode, components, givenVars, source) {
     each(obj, (value, key) => {
       const createValue = () => {
         if (value && typeof value === 'object') {
-          return create(value);
+          return create(value, null, vars);
         }
 
         if (typeof value === 'string') {
@@ -76,7 +76,7 @@ export function parseHtml(sourceCode, components, givenVars, source) {
       };
 
       if (key.indexOf(':') === 0) {
-        const res = consumeVars(value);
+        const res = value;
         const realKey = key.substr(1);
         const k = camelcase(realKey);
         props.push([k, res]);
@@ -99,8 +99,8 @@ export function parseHtml(sourceCode, components, givenVars, source) {
 
           const [, _item, , _index, _items] = matched;
           const [item, index, items] = [_item.trim(), _index ? _index.trim() : null, _items.trim()];
-          directives.push(['repeat', `{items:${items},itemsKey:'${items}',itemKey:'${item}'${index ? `,indexKey:'${index}'` : ''}}`, true]);
-          args.push(...[item, index].filter(item => !!item));
+          directives.push(['repeat', `{items:${items},itemKey:'${item}'${index ? `,indexKey:'${index}'` : ''}}`, true]);
+          args.push(...[item, index].filter(Boolean));
         } else if (k === 'key') {
           directives.push(['key', value]);
         } else if (k === 'class') {
@@ -117,7 +117,7 @@ export function parseHtml(sourceCode, components, givenVars, source) {
           const [promise, status, data, error] = [_promise, _status, _data, _error]
             .map(item => (item ? item.trim() : null));
           directives.push(['await', `{promise:${promise}${data ? `,data:'${data}'` : ''}${error ? `,error:'${error}'` : ''}${status ? `,status:'${status}'` : ''}}`, true]);
-          args.push(...[data, error, status].filter(item => !!item));
+          args.push(...[data, error, status].filter(Boolean));
         } else if (k === 'bind') {
           const allows = ['input', 'textarea', 'select'];
           if (!allows.includes(type)) {
@@ -132,13 +132,9 @@ export function parseHtml(sourceCode, components, givenVars, source) {
       }
     });
 
-    const finalArgs = args.filter(item => !!item).join(',');
+    const finalArgs = args.filter(Boolean).join(',');
     const finalArgsStr = finalArgs ? `{${finalArgs}}` : '';
-    const finalArgsMap = args.filter(item => !!item).reduce((map, curr) => {
-      // eslint-disable-next-line no-param-reassign
-      map[curr] = 1;
-      return map;
-    }, {});
+    const finalVars = args.filter(Boolean).reduce((map, curr) => ({ ...map, [curr]: 1 }), vars);
 
     const data = [
       ['props', props],
@@ -151,17 +147,23 @@ export function parseHtml(sourceCode, components, givenVars, source) {
           return null;
         }
         let res = `${name}:(${finalArgsStr}) => ({`;
-        res += info.map(([key, value]) => `${key}:${value}`).join(',');
+        res += info.map(([key, value]) => {
+          if (name === 'attrs' || name === 'props') {
+            const v = consumeVars(value, finalVars);
+            return `${key}:${v}`;
+          }
+          return `${key}:${value}`;
+        }).join(',');
         res += '})';
         return res;
       })
-      .filter(item => !!item)
+      .filter(Boolean)
       .concat(directives.map((item) => {
         const [name, value, nonArgs, nonVar] = item;
-        const exp = nonVar ? value : consumeVars(value, finalArgsMap);
+        const exp = nonVar ? value : consumeVars(value, finalVars);
         return `${name}:(${nonArgs ? '' : finalArgsStr}) => ${value[0] === '{' ? `(${exp})` : exp}`;
       }))
-      .filter(item => !!item)
+      .filter(Boolean)
       .join(',');
 
     return [data ? `{${data}}` : '', args];
@@ -179,14 +181,14 @@ export function parseHtml(sourceCode, components, givenVars, source) {
     const subs = [];
 
     if (props) {
-      [data, args] = create(props, type);
+      [data, args] = create(props, type, vars);
     }
 
-    const subArgs = args.filter(item => !!item);
+    const subArgs = args.filter(Boolean);
     const subArgsStr = subArgs.length ? `{${subArgs.join(',')}}` : '';
     const subVars = subArgs.reduce((map, key) => ({ ...map, [key]: 1 }), { ...vars });
 
-    if (children.length && children.some(item => !!item)) {
+    if (children.length && children.some(Boolean)) {
       each(children, (child) => {
         if (typeof child === 'string') {
           const text = interpolate(child, subVars);
@@ -211,7 +213,7 @@ export function parseHtml(sourceCode, components, givenVars, source) {
       return content;
     };
     const inner = subs.length ? `(${subArgsStr}) =>${inter(`[${subs.join(',')}]`)}` : null;
-    const params = [component, data, inner].filter(item => !!item);
+    const params = [component, data, inner].filter(Boolean);
     const code = `_sfc.h(${params.join(',')})`;
     return code;
   };
