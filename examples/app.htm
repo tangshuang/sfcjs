@@ -34,6 +34,12 @@
   function trigger(e) {
     console.log(e)
   }
+
+  let html = `<span style="color: red">${name}: ${age}</span>`;
+
+  function changeHtml() {
+    html = `<span style="color: red">${name}: ${age + 1}</span>`;
+  }
 </script>
 
 <style>
@@ -142,4 +148,7 @@
   <t-sfc (src)="./some2.htm"></t-sfc>
 
   <repeat-list></repeat-list>
+
+  <div (html)="html"></div>
+  <button @click="changeHtml()">change html</button>
 </div>

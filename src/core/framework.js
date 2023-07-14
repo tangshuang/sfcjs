@@ -85,6 +85,7 @@ class Neure {
   props = null;
   events = null;
   bind = null;
+  html = null;
   className = null;
   style = null;
   // 记录内函数的参数
@@ -440,22 +441,26 @@ class Element {
   }
 
   mountNeure(neure, root) {
-    const { type, attrs, events, child, sibling, text, visible, className, style, bind } = neure;
+    const { type, attrs, events, child, sibling, text, visible, className, style, bind, html } = neure;
 
     const mount = (type) => {
       const node = isInstanceOf(neure, SvgNeure) ? document.createElementNS('http://www.w3.org/2000/svg', type) : document.createElement(type);
+
       each(attrs, (value, key) => {
         node.setAttribute(key, value);
       });
+
       each(events, (fn, key) => {
         node.addEventListener(key, fn);
       });
+
       if (className) {
         const classNames = className.split(' ');
         classNames.forEach((item) => {
           node.classList.add(item);
         });
       }
+
       if (style) {
         node.style.cssText = (node.style.cssText || '') + style;
       }
@@ -475,12 +480,17 @@ class Element {
 
       // eslint-disable-next-line no-param-reassign
       neure.node = node;
+
       if (child) {
         this.mountNeure(child, node);
       }
 
       if (bind) {
         changeInput(neure);
+      }
+
+      if (html) {
+        node.innerHTML = html;
       }
     };
 
@@ -697,6 +707,7 @@ class Element {
           props: propsGetter,
           events: eventsGetter,
           bind: bindGetter,
+          html: htmlGetter,
         } = meta;
 
         this.collect(() => {
@@ -708,6 +719,7 @@ class Element {
           const className = classGetter ? classGetter(args) : '';
           const style = styleGetter ? styleGetter(args) : '';
           const bind = bindGetter ? bindGetter() : null;
+          const html = htmlGetter ? htmlGetter(args) : null;
 
           // 从不显示变为显示
           showOut = visible && !neure.visible;
@@ -730,6 +742,7 @@ class Element {
             className,
             style,
             bind,
+            html,
           });
 
           // 从最开始的不显示，变为显示出来，需要新建child
@@ -765,6 +778,7 @@ class Element {
               key: keyGetter,
               attrs: attrsGetter,
               bind: bindGetter,
+              html: htmlGetter,
             } = meta;
 
             const key = keyGetter ? keyGetter(args) : null;
@@ -773,6 +787,7 @@ class Element {
             const className = classGetter ? classGetter(args) : '';
             const style = styleGetter ? styleGetter(args) : '';
             const bind = bindGetter ? bindGetter() : null;
+            const html = htmlGetter ? htmlGetter(args) : null;
 
             // 从不显示变为显示
             showOut = visible && !neure.visible;
@@ -822,12 +837,17 @@ class Element {
               }
             }
 
+            if (neure.visible && html) {
+              node.innerHTML = html;
+            }
+
             neure.set({
               key,
               visible,
               attrs,
               className,
               style,
+              html,
             });
           }, (deps) => {
             // eslint-disable-next-line no-param-reassign
@@ -1247,6 +1267,7 @@ function createNeure(type, meta, children, args, NeureClass) {
     props: propsGetter,
     events: eventsGetter,
     bind: bindGetter,
+    html: htmlGetter,
   } = meta;
 
   const key = keyGetter ? keyGetter(args) : null;
@@ -1257,6 +1278,7 @@ function createNeure(type, meta, children, args, NeureClass) {
   const className = classGetter ? classGetter(args) : '';
   const style = styleGetter ? styleGetter(args) : '';
   const bind = bindGetter ? bindGetter() : null;
+  const html = htmlGetter ? htmlGetter(args) : null;
 
   const neure = new NeureClass();
   neure.set({
@@ -1274,6 +1296,7 @@ function createNeure(type, meta, children, args, NeureClass) {
     className,
     style,
     bind,
+    html,
   });
 
   return neure;

@@ -114,6 +114,8 @@ export function parseHtml(sourceCode, components, givenVars, source) {
           }
 
           directives.push(['bind', `[_sfc.consume(${value}), v => _sfc.update(${value}, () => v)]`, true, true]);
+        } else if (k === 'html') {
+          directives.push(['html', value]);
         }
       } else {
         const v = createValue();
