@@ -31,10 +31,6 @@
 
   let selectedColor = colors[1];
 
-  const promise = new Promise((resolve) => {
-    setTimeout(resolve, 3000);
-  });
-
   function trigger(e) {
     console.log(e)
   }
@@ -132,12 +128,6 @@
   >
     <span>passed slot: {{age}}</span>
   </some-component>
-
-  <div (await)="promise.status(status)">
-    <span (if)="status === 'pending'">Waiting ...</span>
-    <span (if)="status === 'resolved'">Show async success after 3s!</span>
-    <span (if)="status === 'rejected'">Show async failure after 3s!</span>
-  </div>
 
   <input (bind)="name" />
   <textarea (bind)="name"></textarea>

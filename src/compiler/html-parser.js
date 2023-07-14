@@ -107,17 +107,6 @@ export function parseHtml(sourceCode, components, givenVars, source) {
           directives.push(['class', value]);
         } else if (k === 'style') {
           directives.push(['style', value]);
-        } else if (k === 'await') {
-          const matched = value.match(/^(\w+)(\.status\((\w+)\))?(\.then\((\w+)\))?(\.catch\((\w+)\))?$/);
-          if (!matched) {
-            throw new Error('await 语法不正确 await="promise.status(status).then(data).catch(error)"');
-          }
-
-          const [, _promise, , _status, , _data, , _error] = matched;
-          const [promise, status, data, error] = [_promise, _status, _data, _error]
-            .map(item => (item ? item.trim() : null));
-          directives.push(['await', `{promise:${promise}${data ? `,data:'${data}'` : ''}${error ? `,error:'${error}'` : ''}${status ? `,status:'${status}'` : ''}}`, true]);
-          args.push(...[data, error, status].filter(Boolean));
         } else if (k === 'bind') {
           const allows = ['input', 'textarea', 'select'];
           if (!allows.includes(type)) {

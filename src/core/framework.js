@@ -117,13 +117,6 @@ class TextNeure extends Neure {
 
 class SvgNeure extends Neure {}
 
-class AsyncNeure extends Neure {
-  promise = null // 含有await指令
-  data = ''
-  error = ''
-  status = ''
-}
-
 // ---------------------------------------------
 
 class Brush {
@@ -526,37 +519,6 @@ class Element {
 
     if (sibling) {
       this.mountNeure(sibling, root);
-    }
-
-    // 等到全部初始状态挂载完毕之后，才能进入到更新操作，有一个mounted标记控制
-    if (isInstanceOf(neure, AsyncNeure)) {
-      neure.promise.then((res) => {
-        if (neure.status) {
-          const [key, reactor] = neure.status;
-          // eslint-disable-next-line no-param-reassign
-          neure.args[key] = 'resolved';
-          this.update(reactor, () => 'resolved');
-        }
-        if (neure.data) {
-          const [key, reactor] = neure.data;
-          // eslint-disable-next-line no-param-reassign
-          neure.args[key] = res;
-          this.update(reactor, () => res);
-        }
-      }).catch((err) => {
-        if (neure.status) {
-          const [key, reactor] = neure.status;
-          // eslint-disable-next-line no-param-reassign
-          neure.args[key] = 'rejected';
-          this.update(reactor, () => 'rejected');
-        }
-        if (neure.error) {
-          const [key, reactor] = neure.error;
-          // eslint-disable-next-line no-param-reassign
-          neure.args[key] = err;
-          this.update(reactor, () => err);
-        }
-      });
     }
   }
 
@@ -1020,7 +982,7 @@ class Element {
   }
 
   initNeure(type, meta = {}, childrenGetter, args) {
-    const { repeat: repeatGetter, await: awaitGetter } = meta;
+    const { repeat: repeatGetter } = meta;
 
     if (repeatGetter) {
       const neureList = new NeureList();
@@ -1065,34 +1027,6 @@ class Element {
       neureList.child = neures[0] || null;
       neureList.list = neures;
       return neureList;
-    }
-
-    if (awaitGetter) {
-      const { await: _await, ...others } = meta;
-      const { promise, data, error, status } = awaitGetter(); // 无法进行响应式，只能一次使用
-
-      const stat = status ? [status, this.reactive(() => 'pending')] : null;
-      const dt = data ? [data, this.reactive(() => null)] : null;
-      const err = error ? [error, this.reactive(() => null)] : null;
-
-      const passedArgs = args || {};
-      const localArgs = { ...passedArgs };
-      if (stat) {
-        const [key, value] = stat;
-        localArgs[key] = value;
-      }
-
-      // 真正实例化
-      const neure = createNeure(type, others, childrenGetter, localArgs, AsyncNeure);
-      neure.set({
-        promise,
-        status: stat,
-        data: dt,
-        error: err,
-      });
-
-      this.genChildren(neure);
-      return neure;
     }
 
     const neure = createNeure(type, meta, childrenGetter, args, type === 'svg' || this.$$inSvg ? SvgNeure : Neure);

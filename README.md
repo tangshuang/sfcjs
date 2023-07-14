@@ -178,7 +178,6 @@
 - (src)、(href): `<img (src)="./xxx.jpg" />` `src` 和 `href` 两个指令会根据真实路径读取到正确的路径，帮助你写代码时只关注当前组件，**注意：其值为字符串，而非变量。**
 - (repeat): `<div (repeat)="item,index in items" (key)="item.id">{{item.text}}</div>` 循环，`items` 是一个变量，这句话表示遍历 `items`，其中 `index` 是可选的
 - (key): 一般和 `repeat` 一起用，用以标记标签唯一性，确保变化时的顺序
-- (await): `<div (await)="promise.status(stat).then(data).catch(error)"><span (if)="stat === 'pending'">waiting...</span><span (if)="stat === 'resolved'">{{data.text}}</span><span (if)="stat === 'rejected'">{{error.message}}</span></div>` 异步渲染，`promise` 是一个变量（Promise 实例），这句话表示 Promise 的状态变化时，展示不同部分
 - (bind): `<input (bind)="word" />` 双向数据绑定，只对 `<input>` `<textarea>` `<select>` 有效，不要传入默认值，例如 `<textarea (bind)="description"></textarea>`（没有传默认值，bind 会默认填充）
 
 ## 动态样式
