@@ -63,18 +63,6 @@ export function parseHtml(sourceCode, components, givenVars, source) {
     };
 
     each(obj, (value, key) => {
-      const createValue = () => {
-        if (value && typeof value === 'object') {
-          return create(value, null, vars);
-        }
-
-        if (typeof value === 'string') {
-          return interpolate(value);
-        }
-
-        return value;
-      };
-
       if (key.indexOf(':') === 0) {
         const res = value;
         const realKey = key.substr(1);
@@ -87,7 +75,7 @@ export function parseHtml(sourceCode, components, givenVars, source) {
         const k = key.substring(1, key.length - 1);
         if (k === 'src' || k === 'href') {
           const url = resolveUrl(source, value);
-          attrs.push([k, `'${url}'`]);
+          attrs.push([k, url]);
         } else if (k === 'if') {
           directives.push(['visible', value]);
           args.push(null);
@@ -118,8 +106,7 @@ export function parseHtml(sourceCode, components, givenVars, source) {
           directives.push(['html', value]);
         }
       } else {
-        const v = createValue();
-        attrs.push([serialName(key), v]);
+        attrs.push([serialName(key), value]);
       }
     });
 
@@ -139,10 +126,21 @@ export function parseHtml(sourceCode, components, givenVars, source) {
         }
         let res = `${name}:(${finalArgsStr}) => ({`;
         res += info.map(([key, value]) => {
-          if (name === 'attrs' || name === 'props') {
+          if (value && typeof value === 'object') {
+            const v = create(value, null, finalVars);
+            return `${key}:${v}`;
+          }
+
+          if (name === 'attrs' && typeof value === 'string') {
+            const v = interpolate(value, finalVars);
+            return `${key}:${v}`;
+          }
+
+          if (name === 'props' && typeof value === 'string') {
             const v = consumeVars(value, finalVars);
             return `${key}:${v}`;
           }
+
           return `${key}:${value}`;
         }).join(',');
         res += '})';

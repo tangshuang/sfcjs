@@ -39,15 +39,7 @@ export function tokenize(code) {
   for (let len = code.length; cursor < len; cursor ++) {
     const char = code[cursor];
 
-    const twoChars = char + code[cursor + 1];
-    if ([...OPERATORS, ...MODIFIERS].includes(twoChars)) {
-      push();
-      tokens.push(twoChars);
-      cursor += 1;
-    } else if (SPECIARES.includes(char)) {
-      push();
-      tokens.push(char);
-    } else if (['"', '\'', '`'].includes(char)) {
+    if (['"', '\'', '`'].includes(char)) {
       const latest = quotes[quotes.length - 1];
       if (latest && latest === char) {
         quotes.pop();
@@ -61,14 +53,37 @@ export function tokenize(code) {
         pushStr();
         token += char;
       }
-    } else if (quotes.length) {
+      continue;
+    }
+
+    if (quotes.length) {
       pushStr();
       token += char;
-    } else if (token && char === ':') {
+      continue;
+    }
+
+    const twoChars = char + code[cursor + 1];
+    if ([...OPERATORS, ...MODIFIERS].includes(twoChars)) {
+      push();
+      tokens.push(twoChars);
+      cursor += 1;
+      continue;
+    }
+
+    if (SPECIARES.includes(char)) {
+      push();
+      tokens.push(char);
+      continue;
+    }
+
+    if (token && char === ':') {
       token += ':';
       tokens.push(token);
       token = '';
-    } else if (token && char === ' ') {
+      continue;
+    }
+
+    if (token && char === ' ') {
       let following = ' ';
       let i = cursor + 1;
       let next = code[i];
@@ -88,28 +103,45 @@ export function tokenize(code) {
         token = '';
         str = ' ';
       }
-    } else if (/\w/.test(char)) {
+
+      continue;
+    }
+
+    if (/\w/.test(char)) {
       pushStr();
       token += char;
-    } else {
-      pushToken();
-      str += char;
+      continue;
     }
+
+    pushToken();
+    str += char;
   }
 
   push();
 
-  // 清洗
-  // 把放置在符号前后的空格清洗掉
-  for (let i = 0, len = tokens.length; i < len; i ++) {
-    const token = tokens[i];
-    if (token === ' ' && (isSign(tokens[i - 1]) || isSign(tokens[i + 1]))) {
-      tokens.splice(i, 1);
-      i -= 1;
-      len -= 1;
-    }
-  }
+  // // 解析 `` 字符串模板
+  // for (let i = 0, len = tokens.length; i < len; i ++) {
+  //   const token = tokens[i];
+  //   if (!/^`[\w\W]+\$\{[\w\W]+\}[\w\W]+`$/.test(token)) {
+  //     continue;
+  //   }
 
+  //   token.replace(/\$\{([\W\w]+)\}/g, () => {});
+
+  // }
+
+  // // 清洗
+  // // 把放置在符号前后的空格清洗掉
+  // for (let i = 0, len = tokens.length; i < len; i ++) {
+  //   const token = tokens[i];
+  //   if (token === ' ' && (isSign(tokens[i - 1]) || isSign(tokens[i + 1]))) {
+  //     tokens.splice(i, 1);
+  //     i -= 1;
+  //     len -= 1;
+  //   }
+  // }
+
+  // console.log(code, tokens)
   return tokens;
 }
 
