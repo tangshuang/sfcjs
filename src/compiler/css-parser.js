@@ -506,109 +506,109 @@ function parseCssAst(css, options) {
     });
   }
 
-  function atfns() {
-    const pos = position();
-    const m = match(/^@fns\s*/);
+  // function atfns() {
+  //   const pos = position();
+  //   const m = match(/^@fns\s*/);
 
-    if (!m) return;
+  //   if (!m) return;
 
-    if (!open()) return error('@fns missing \'{\'');
+  //   if (!open()) return error('@fns missing \'{\'');
 
-    const style = comments().concat(rules());
+  //   const style = comments().concat(rules());
 
-    if (!close()) return error('@fns missing \'}\'');
+  //   if (!close()) return error('@fns missing \'}\'');
 
-    return pos({
-      type: 'fns',
-      rules: style,
-    });
-  }
+  //   return pos({
+  //     type: 'fns',
+  //     rules: style,
+  //   });
+  // }
 
-  function atif() {
-    const pos = position();
-    const m = match(/^@if *([^{]+)/);
+  // function atif() {
+  //   const pos = position();
+  //   const m = match(/^@if *([^{]+)/);
 
-    if (!m) return;
-    const condition = trim(m[1]);
+  //   if (!m) return;
+  //   const condition = trim(m[1]);
 
-    if (!open()) return error('@if missing \'{\'');
+  //   if (!open()) return error('@if missing \'{\'');
 
-    const style = comments().concat(rules());
+  //   const style = comments().concat(rules());
 
-    if (!close()) return error('@if missing \'}\'');
+  //   if (!close()) return error('@if missing \'}\'');
 
-    return pos({
-      type: 'if',
-      condition,
-      rules: style,
-    });
-  }
+  //   return pos({
+  //     type: 'if',
+  //     condition,
+  //     rules: style,
+  //   });
+  // }
 
-  function atelseif() {
-    const pos = position();
-    const m = match(/^@elseif *([^{]+)/);
+  // function atelseif() {
+  //   const pos = position();
+  //   const m = match(/^@elseif *([^{]+)/);
 
-    if (!m) return;
-    const condition = trim(m[1]);
+  //   if (!m) return;
+  //   const condition = trim(m[1]);
 
-    if (!open()) return error('@elseif missing \'{\'');
+  //   if (!open()) return error('@elseif missing \'{\'');
 
-    const style = comments().concat(rules());
+  //   const style = comments().concat(rules());
 
-    if (!close()) return error('@elseif missing \'}\'');
+  //   if (!close()) return error('@elseif missing \'}\'');
 
-    return pos({
-      type: 'elseif',
-      condition,
-      rules: style,
-    });
-  }
+  //   return pos({
+  //     type: 'elseif',
+  //     condition,
+  //     rules: style,
+  //   });
+  // }
 
-  function atelse() {
-    const pos = position();
-    const m = match(/^@else\s*/);
+  // function atelse() {
+  //   const pos = position();
+  //   const m = match(/^@else\s*/);
 
-    if (!m) return;
+  //   if (!m) return;
 
-    if (!open()) return error('@else missing \'{\'');
+  //   if (!open()) return error('@else missing \'{\'');
 
-    const style = comments().concat(rules());
+  //   const style = comments().concat(rules());
 
-    if (!close()) return error('@else missing \'}\'');
+  //   if (!close()) return error('@else missing \'}\'');
 
-    return pos({
-      type: 'else',
-      rules: style,
-    });
-  }
+  //   return pos({
+  //     type: 'else',
+  //     rules: style,
+  //   });
+  // }
 
-  function atfor() {
-    const pos = position();
-    const m = match(/^@for *([^{]+)/);
+  // function atfor() {
+  //   const pos = position();
+  //   const m = match(/^@for *([^{]+)/);
 
-    if (!m) return;
-    const vars = trim(m[1]).split(' of ');
-    if (vars.length !== 2) return;
-    const left = vars[0];
-    const leftVars = left.split(',');
-    const item = leftVars[0];
-    const index = leftVars[1];
-    const items = vars[1];
+  //   if (!m) return;
+  //   const vars = trim(m[1]).split(' of ');
+  //   if (vars.length !== 2) return;
+  //   const left = vars[0];
+  //   const leftVars = left.split(',');
+  //   const item = leftVars[0];
+  //   const index = leftVars[1];
+  //   const items = vars[1];
 
-    if (!open()) return error('@for missing \'{\'');
+  //   if (!open()) return error('@for missing \'{\'');
 
-    const style = comments().concat(rules());
+  //   const style = comments().concat(rules());
 
-    if (!close()) return error('@for missing \'}\'');
+  //   if (!close()) return error('@for missing \'}\'');
 
-    return pos({
-      type: 'for',
-      item,
-      index,
-      items,
-      rules: style,
-    });
-  }
+  //   return pos({
+  //     type: 'for',
+  //     item,
+  //     index,
+  //     items,
+  //     rules: style,
+  //   });
+  // }
 
   /**
    * Parse import
@@ -661,12 +661,12 @@ function parseCssAst(css, options) {
       || atdocument()
       || atpage()
       || athost()
-      || atfontface()
-      || atfns()
-      || atif()
-      || atelseif()
-      || atelse()
-      || atfor();
+      || atfontface();
+    // || atfns()
+    // || atif()
+    // || atelseif()
+    // || atelse()
+    // || atfor()
   }
 
   /**

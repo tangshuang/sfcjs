@@ -17,7 +17,6 @@
   "author": "tangshuang",
   "license": "MIT",
   "dependencies": {
-    "abs-html": "^2.1.6",
     "immer": "^9.0.12",
     "ts-fns": "^10.8.0"
   },

@@ -1,7 +1,3 @@
-import {
-  parseHtmlToAst,
-  // traverseAst as traverseHtmlAst,
-} from 'abs-html';
 import { each, camelcase, clearHtml, resolveUrl } from '../utils';
 import { tokenize } from './js-parser';
 
@@ -22,25 +18,6 @@ export function parseHtml(sourceCode, components, givenVars, source) {
   };
 
   let code = '() => {return ';
-
-  // DROP 通过clearHtml解决了
-  // traverseHtmlAst(htmlAst, {
-  //   '[[String]]': {
-  //     enter(node, parent, index) {
-  //       if (!parent) {
-  //         return
-  //       }
-  //       // 去掉所有换行逻辑
-  //       if (/^\n[\s\n]*$/.test(node)) {
-  //         parent.splice(index, 1)
-  //       }
-  //       else if (/^\n.*?\n$/.test(node)) {
-  //         const str = node.substring(1, node.length - 1)
-  //         parent[index] = str
-  //       }
-  //     },
-  //   },
-  // })
 
   const interpolate = (str, vars) => {
     const res = str.replace(/{{(.*?)}}/g, (_, $1) => `\${${consumeVars($1, vars)}}`);
@@ -211,4 +188,208 @@ export function parseHtml(sourceCode, components, givenVars, source) {
   code += ';}';
 
   return { code };
+}
+
+const SELF_CLOSE_TAGS = [
+  'area',
+  'base',
+  'br',
+  'col',
+  'embed',
+  'hr',
+  'img',
+  'input',
+  'link',
+  'meta',
+  'param',
+  'source',
+  'track',
+  'wbr',
+];
+
+/**
+ * 将html字符串解析为ast
+ * @param {string} html
+ * @param {function} visit 访问第一次生成时的节点，返回新节点信息
+ * @returns ast
+ */
+function parseHtmlToAst(html, visit) {
+  const nest = [];
+
+  const len = html.length;
+
+  let inTagBegin = null;
+  let inTag = null;
+
+  const nodes = [];
+
+  for (let i = 0; i < len; i += 1) {
+    let char = html[i];
+    const next = html[i + 1];
+    // 关闭标签
+    if (inTag && char === '<' && next === '/') {
+      while (char !== '>') {
+        i += 1;
+        char = html[i];
+      }
+
+      // TODO check intag
+
+      const node = inTag;
+      if (node.length < 3) {
+        node[1] = node[1] || null;
+        node[2] = '';
+      }
+
+      nest.pop();
+      inTag = nest[nest.length - 1];
+    }
+    // 开始一个标签
+    else if (!inTagBegin && char === '<' && html[i + 1] !== ' ') {
+      if (html[i + 1] === '!' && html[i + 2] === '-' && html[i + 3] === '-') {
+        const comment = ['#comment', null];
+        let content = '';
+
+        i += 4;
+        char = html[i];
+
+        while (!(char === '-' && html[i + 1] === '-' && html[i + 2] === '>')) {
+          content += char;
+
+          i += 1;
+          char = html[i];
+        }
+
+        comment[2] = content;
+        const parent = nest.length ? nest[nest.length - 1] : nest;
+        parent.push(comment);
+
+        i += 2;
+        continue;
+      }
+
+      let tag = '';
+
+      i += 1;
+      char = html[i];
+
+      while (char !== ' ' && char !== '>') {
+        tag += char;
+
+        i += 1;
+        char = html[i];
+      }
+
+      const node = [tag.trim()];
+      inTagBegin = node;
+      nodes.push(node);
+
+      i -= 1;
+    }
+    // 属性
+    else if (inTagBegin && char === ' ') {
+      let quota = '';
+      let name = '';
+      let value = '';
+
+      const node = inTagBegin;
+      const putAttr = (data) => {
+        name = name.trim();
+        if (!name) {
+          return;
+        }
+
+        node[1] = node[1] || {};
+        node[1][name] = data;
+        name = '';
+        value = '';
+        quota = '';
+      };
+
+      while (i < len) {
+        i += 1;
+        char = html[i];
+
+        // 忽略空格
+        if (!quota && char === ' ') {
+          // 有些属性被放在引号中，有空格
+          if (name[0] !== '"' && name[0] !== '\'') {
+            // 没有值的属性结束
+            if (name) {
+              putAttr(null);
+            }
+            continue;
+          }
+        }
+
+        // 立即自关闭标签，例如 <img />
+        if (!quota && char === '/' && html[i + 1] === '>') {
+          const parent = nest.length ? nest[nest.length - 1] : nest;
+          parent.push(node);
+          inTagBegin = null;
+          i += 1;
+          putAttr(null);
+          break;
+        }
+
+        // 关闭开始标签，例如 <div >
+        if (!quota && char === '>') {
+          i -= 1;
+          putAttr(null);
+          break;
+        }
+
+        // 属性名结束，值开始
+        if (!quota && char === '=') {
+          i += 1;
+          char = html[i];
+          quota = char;
+          continue;
+        }
+
+        if (!quota) {
+          name += char;
+          continue;
+        }
+
+        // 值结束
+        if (quota && (char === quota) && html[i - 1] !== '\\') {
+          putAttr(value);
+          continue;
+        }
+
+        if (quota) {
+          value += char;
+          continue;
+        }
+      }
+    }
+    // 开始标签结束
+    else if (inTagBegin && char === '>') {
+      const node = visit ? visit(inTagBegin) : inTagBegin;
+      const parent = nest.length ? nest[nest.length - 1] : nest;
+      parent.push(node);
+      nest.push(node);
+      node[1] = node[1] || null; // 强制props
+      inTagBegin = null;
+      inTag = node;
+
+      if (SELF_CLOSE_TAGS.indexOf(node[0]) > -1) {
+        nest.pop();
+        inTag = nest[nest.length - 1];
+      }
+    } else if (inTag) {
+      const node = inTag;
+      if (node.length < 3) {
+        node[1] = node[1] || null;
+        node[2] = char;
+      } else if (typeof node[node.length - 1] === 'string') {
+        node[node.length - 1] += char;
+      } else {
+        node.push(char);
+      }
+    }
+  }
+
+  return nest[0];
 }
