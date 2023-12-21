@@ -1,0 +1,17 @@
+<script>
+    import SubComp from 'sfc:./sub-component.htm';
+
+    let a = 1;
+
+    function plus(num) {
+        a += num;
+    }
+</script>
+
+<div>
+    <span>{{a}}</span>
+    <button @click="plus(1)">plus</button>
+
+    <div>Sub Component:</div>
+    <sub-comp :count="a"></sub-comp>
+</div>

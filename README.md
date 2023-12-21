@@ -114,33 +114,33 @@
 第四步：在需要使用该组件的应用中引入：
 
 ```html
-<t-sfc src="https://my.cdn.com/my-component.htm"></t-sfc>
+<sfc-x src="https://my.cdn.com/my-component.htm"></sfc-x>
 ```
 
-完成上面步骤，你就可以在放置 `t-sfc` 的位置看到组件的渲染结果。
+完成上面步骤，你就可以在放置 `sfc-x` 的位置看到组件的渲染结果。
 
 ## 自定义标签元素
 
-在 sfcjs 中，你需要通过 `<t-sfc>` 标签来启动一个组件。
+在 sfcjs 中，你需要通过 `<sfc-x>` 标签来启动一个组件。
 
 ```html
-<t-sfc src="https://my.cdn.com/my-component.htm"></t-sfc>
+<sfc-x src="https://my.cdn.com/my-component.htm"></sfc-x>
 ```
 
-*由于 custom element 必须由-两个单词组成，因此在 `sfc` 前面加上 `tencent` 的 `t` 作为前缀，标签名为 `<t-sfc>`，和 [tdesign](https://github.com/tencent/tdesign) 组件的 `t-` 保持一致。*
+*由于 custom element 必须由-两个单词组成，因此在 `sfc` 后面加上 `x` 作为后缀，标签名为 `<sfc-x>`。*
 
-`t-sfc` 元素支持如下属性：
+`sfc-x` 元素支持如下属性：
 
 - src: 组件相对于当前页面的相对路径或绝对路径（如果你的应用是 SPA，推荐使用绝对路径）
-- passive: 是否需要**禁用**立即渲染视图，这样可以方便有些情况下，你不想马上渲染组件效果。在某个动作之后需要手动调用 `document.querySelector('t-sfc#app').mount()` 来渲染视图
+- passive: 是否需要**禁用**立即渲染视图，这样可以方便有些情况下，你不想马上渲染组件效果。在某个动作之后需要手动调用 `document.querySelector('sfc-x#app').mount()` 来渲染视图
 - pending-slot: 是否使用传入的 slot 作为组件加载完成之前的预览信息，默认为 `0`，你可以传入 `pending-slot="1"` 来开启，开启后组件加载期间 slot 将被展示，可作为预加载提示界面
 - 以 `:` 或 `data-` 开头的属性将作为组件的 props 进行传入，这些属性的值必须是 JSON 字符串，内部才能正常解析。提供 `data-` 的选项是为了避免在 vue, react 中无法使用 `:` 开头的属性。
 - 其他不是 `:` 或 `data-` 开头的属性将和组件无关，是 custom element 的属性。
 
-`t-sfc` 元素可以通过 `addEventListener` 监听组件内抛出的事件，监听得到的是一个 CustomEvent，可通过 `event.detail` 属性读取组件内抛出的值。
+`sfc-x` 元素可以通过 `addEventListener` 监听组件内抛出的事件，监听得到的是一个 CustomEvent，可通过 `event.detail` 属性读取组件内抛出的值。
 
 ```html
-<t-sfc src="..." pending-slot="1" passive="1" :prop1="{ name: 1 }" data-prop2="true" class="some">这段内容会在一开始被展示出来，Loading...</t-sfc>
+<sfc-x src="..." pending-slot="1" passive="1" :prop1="{ name: 1 }" data-prop2="true" class="some">这段内容会在一开始被展示出来，Loading...</sfc-x>
 
 <script>
   const some = document.querySelector('.some');
@@ -266,10 +266,10 @@ SFCJS 支持在应用（而非组件）当前 html 中用 template 提前定义�
   </template>
 <head>
 
-<t-sfc src="./some.htm"></t-sfc>
+<sfc-x src="./some.htm"></sfc-x>
 ```
 
-在上面代码中，通过含有 `sfc-src` 的 `template` 提前定义了一个组件，然后在下面用 `t-sfc` 使用该组件，这样可以不用通过异步请求来拉取组件代码。
+在上面代码中，通过含有 `sfc-src` 的 `template` 提前定义了一个组件，然后在下面用 `sfc-x` 使用该组件，这样可以不用通过异步请求来拉取组件代码。
 
 同时，sfcjs 也支持直接在 auto template 中使用宏，由于宏中可以定义具体 tag，此时，你甚至可以不用传入具体的 sfc-src，让它自己内部生成。
 
@@ -497,7 +497,7 @@ module.exports = function(content) {
 
 *由于 sfcjs 是完全依赖 ESModule 的，所有的 ES 语法都需要浏览器支持，所以，你可以通过这种方法，把编译后的结果再交给 babel 去进行转译。（sfcjs 基于 Proxy 实现，不支持 IE 浏览器。）*
 
-引入经过编译后的组件，将直接把该组件及其依赖打包进来，完成组件的注册。但是需要注意，如果要在界面中展示该组件，还是要使用 `t-sfc` 进行组件展示才行。
+引入经过编译后的组件，将直接把该组件及其依赖打包进来，完成组件的注册。但是需要注意，如果要在界面中展示该组件，还是要使用 `sfc-x` 进行组件展示才行。
 
 ```html
 <!-- 如果 importLib 为 false，你需要引入下面这一行 -->
@@ -507,10 +507,10 @@ module.exports = function(content) {
 <script src="bundle.js" type="module"></script>
 
 <!-- 展示组件界面，这里的 src 要与上面提供的 entryUrl 一致，建议使用下面这种绝对路径 -->
-<t-sfc src="/index.htm"></t-sfc>
+<sfc-x src="/index.htm"></sfc-x>
 ```
 
-也就是说，编译工具把我们原有的 .htm 文件编译为 js 代码，在你的工程项目中可以和其他的代码打包到一起。但是最终要使用对应的组件时，需要使用 `t-sfc` 来进行组件的使用。
+也就是说，编译工具把我们原有的 .htm 文件编译为 js 代码，在你的工程项目中可以和其他的代码打包到一起。但是最终要使用对应的组件时，需要使用 `sfc-x` 来进行组件的使用。
 
 ## 宏
 
@@ -552,7 +552,7 @@ JIT 模式下，我们通过 `<link rel="sfc" />` 来引入一个 sfc 组件文�
 
 ### 场景一：在不同技术栈中使用相同的界面效果
 
-有一个用于展示近期股票走势的界面需要被很多网站调用，但作为该界面的开发方，我们并不清楚对方是基于什么技术栈实现，我们不愿意提供基于 vue, react, angular 甚至 jquery 的不同版本，因此，我们使用 sfcjs 作为视图驱动引擎，将开发好的界面发布到我们的 CDN，客户只需要在他们的网站中插入 sfcjs 的框架文件，之后，可以多次调用我们公司开发的不同 t-sfc 组件。由于 sfcjs 是完全基于 web components 的，所以做到了样式上的隔离，同时对该组件的接入又极其方便，这大大提高了我们的交付效率和与客户沟通部署的成本。
+有一个用于展示近期股票走势的界面需要被很多网站调用，但作为该界面的开发方，我们并不清楚对方是基于什么技术栈实现，我们不愿意提供基于 vue, react, angular 甚至 jquery 的不同版本，因此，我们使用 sfcjs 作为视图驱动引擎，将开发好的界面发布到我们的 CDN，客户只需要在他们的网站中插入 sfcjs 的框架文件，之后，可以多次调用我们公司开发的不同 sfc-x 组件。由于 sfcjs 是完全基于 web components 的，所以做到了样式上的隔离，同时对该组件的接入又极其方便，这大大提高了我们的交付效率和与客户沟通部署的成本。
 
 ### 场景二：服务端动态渲染
 

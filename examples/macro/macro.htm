@@ -1,0 +1,19 @@
+<script type="application/ld+json">
+  {
+    "@context": "sfc:privilege",
+    "@type": "macro-tag"
+  }
+</script>
+
+<script>
+  let a = 1;
+
+  function plus(num) {
+    a += num;
+  }
+</script>
+
+<div>
+  <span>{{a}}</span>
+  <button @click="plus(1)">plus</button>
+</div>

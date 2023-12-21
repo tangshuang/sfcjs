@@ -31,16 +31,16 @@
   <button type="{{props.type}}" class="{{props.theme}}">动作：<slot></slot></button>
 </template>
 
-<t-sfc src="./app.htm" data-dog="{ name: 'tydi' }" pending-slot="1">
+<sfc-x src="./app.htm" data-dog="{ name: 'tydi' }" pending-slot="1">
   <span>Loading...</span>
-</t-sfc>
+</sfc-x>
 
 <t-button type="button" theme="success">按钮</t-button>
 
 <macro-tag></macro-tag>
 
 <script>
-  document.querySelector('t-sfc').addEventListener('grow', e => console.log(e.detail));
+  document.querySelector('sfc-x').addEventListener('grow', e => console.log(e.detail));
   document.querySelector('t-button').addEventListener('mounted', function() {
     setTimeout(() => {
       this.setAttribute('theme', 'error');
