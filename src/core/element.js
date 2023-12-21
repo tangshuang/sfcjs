@@ -366,8 +366,7 @@ export async function privilege(tag, options, source) {
     });
 
     // 注册template[sfc-src]
-    const templates = document.querySelectorAll('template[sfc-src]');
-    templates.forEach((el) => {
+    document.querySelectorAll('template[sfc-src]').forEach((el) => {
       append(el, async () => {
         const src = el.getAttribute('sfc-src');
         const text = el.innerHTML;
@@ -375,6 +374,23 @@ export async function privilege(tag, options, source) {
         const uri = src || `/-/${tag || Date.now()}`;
         const absUrl = resolveUrl(baseUrl, uri);
         await register(absUrl, text);
+      });
+    });
+
+    // 注册template[sfc]
+    document.querySelectorAll('template[sfc]').forEach((el) => {
+      append(el, async () => {
+        const name = el.getAttribute('as');
+        const text = el.innerHTML;
+        const [, type] = text.match(/"@type":\s*?"(.*?)"/m) || [];
+        const tag = name || type;
+        if (!tag) {
+          return;
+        }
+
+        const uri = name || `/-/${tag || Date.now()}`;
+        const absUrl = resolveUrl(baseUrl, uri);
+        await register(absUrl, text, { tag });
       });
     });
 

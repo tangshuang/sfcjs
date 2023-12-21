@@ -1,73 +1,33 @@
 # SFCJS
 
-Light JIT frontend view driver javascript library.
+轻便的前端 JIT 视图层驱动框架。
 
-*SFC is short for `single file component`.*
+*SFC 是 single file component 的缩写。*
 
-## What's the difference?
+## 有何不同？
 
-- JIT: render components in runtime, without ahead compiling
-- AOT: compile SFC to pure javascript file
-- SFC: write a component with .htm file, deploy to CDN directly, no pack or compiling
-- Web Components: based on customElements, rendering in shadowDOM, supports isolated styles/css, supports `slot` for component
-- Reactive Programming: modify javascript variables to rerender UI
-- Simple Syntax: following HTML syntax, define `<script>`, `<style>`, html blocks in SFC
-- No Virtual DOM: modify DOM nodes directly which is relate to variables
-- Responsive Styles: use javascript variables in css, and it will react changes refer to the variables
-- Asnyc Demanded Loading: only load demanded component files
-- Quick link customElement: a `<link rel="sfc" as="custom-name">` to link a customElement quickly
+- JIT: 运行时直接渲染组件，不需要编译工具（同时也支持 AOT 编译，开发者可根据自己需求选择）
+- 单文件组件：用一个.htm 文件写一个组件，独立部署到 CDN，不需要打包或编译
+- Web Components: 完全基于 customElements 实现，组件被放在 shadowDOM 中，支持样式隔离，支持向组件传标准的 slot
+- 响应式编程：修改 js 变量来触发界面更新
+- 组件类似 svelte 风格，在组件中定义 script, style, html，修改变量触发界面更新
+- 没有 Virtual DOM，更新直接触达 DOM 节点，只有依赖了被修改变量的 DOM 节点会被更新
+- 响应式样式编程：动态生成纯的 css，在 style 语句块中使用 js 变量，当 js 变量发生变化时对应的样式发生变化
+- 异步按需加载：只拉出当前界面渲染需要的组件，当前界面不需要的组件不会被拉取
 
-## Examples
+## 使用方法
 
-```html
-<sfc-x src="./some.htm"></sfc-x>
-```
-
-```html
-<link rel="sfc" href="./some.htm" as="some-x">
-<some-x></some-x>
-```
-
-```html
-<head>
-  <template sfc as="some-x">
-    component content
-  </template>
-</head>
-<some-x></some-x>
-```
-
-## Usage
-
-**Step 1**: import the library file from CDN
-
-```html
-<script src="https://unpkg.com/sfcjs"></script>
-```
-
-**Step 2**: place the customElement at some where link to your SFC file
-
-```html
-<sfc-x src="https://my.cdn.com/my-component.htm"></sfc-x>
-```
-
-Later you will see the component be rendered at the place where `<sfc-x>` put.
-
-**Step 3**: write your SFC and upload to the previous URL, here is an SFC example
+第一步，撰写组件文件：
 
 ```html
 <script>
-  import SomeComponent from 'sfc:./some.htm'; // import another SFC
-  import emit from 'sfc:emit'; // import builtin emit from sfcjs
+  import SomeComponent from 'sfc:./some.htm'; // 导入另外一个组件
+  import emit from 'sfc:emit'; // 从 sfcjs 导入 emit 方法
 
   import { each } from '../src/utils.js';
 
-
-  /**
-   * define some javascript variables
-   * later we will use these variables in UI view
-   * if we change the variables, the UI will be rendered
-   */
+  // 变量是响应式的，
+  // 当变量发生变化时，界面也会跟着变化
 
   let name = 'app_name';
   let age = 10;
@@ -77,38 +37,19 @@ Later you will see the component be rendered at the place where `<sfc-x>` put.
     height: age * 50,
   };
 
-
-  /**
-   * use `var` to delcare varaibles to avoid responsive
-   */
-
+  // 使用 `let` 声明具有响应式效果的变量
+  // 使用 `var` 声明没有响应式效果的变量
   var weight = age * 2;
 
-
-  /**
-   * define some methods which will be used in UI view
-   */
-
   function grow(e) {
-    /**
-     * change variables to rerendered
-     */
+    // 修改变量来触发重新渲染
     age ++;
     weight += 2;
-
-    /**
-     * emit events by using `emit`
-     */
     emit('grow', age);
   }
 
-
-  /**
-   * define constants by `const`
-   * you can use theme in UI view,
-   * however, you can never change constants anywhere
-   */
-
+  // 常量永远不会变化
+  // 注意：常量内部属性值也不会变化，如果需要变化，请使用 let 声明
   const colors = [
     '#fee',
     '#ccd',
@@ -123,19 +64,18 @@ Later you will see the component be rendered at the place where `<sfc-x>` put.
 
   .age {
     color: rgb(
-      /**
-       * use javascript expressions which contain previous variables in var('{{ ... }}')
-       * the used varaibles changed, the styles will be changed too
-       */
+      /* 在 var('{{ ... }}') 中使用 js 表达式 */
       var('{{ age * 5 > 255 ? 255 : age * 5 }}'),
       var('{{ age * 10 > 255 ? 255 : age * 10 }}'),
       var('{{ age * 3 > 255 ? 255 : age * 3 }}')
     );
-    /**
-     * use previous variables by as expression `([...])`
-     */
+    /* 在 ([...]) 中使用变量名 */
     font-size: ([age])px;
   }
+
+  /**
+   * 当 age 变化时，样式也会变化
+   */
 </style>
 
 <div class="app-{{name}}">
@@ -157,29 +97,50 @@ Later you will see the component be rendered at the place where `<sfc-x>` put.
 </div>
 ```
 
-Notice: you should must write tail semicolon at the end of a sentence.
-Notice: only one root HTML tag supported, you can use `<fragment>` as the root tag to contain mutiple elements.
+**注意：script 部分句尾的分号是必须的，否则无法正确解析。这一决定保证了我们所有开发者写作习惯的一致性。**
+*注意：模板部分，只能有一个顶级的 html 标签，你可以使用 `fragment` 标签作为一个虚拟的标签包含多个顶级标签。*
 
-## sfc-x
+第二步：将写好的组件文件部署到服务器 / CDN 上（非同域调用时，需要支持跨域）。
 
-In sfcjs, you will use `<sfc-x>` to bootstrap a remote SFC quickly.
+第三步：在应用入口文档（index.html）头部加载框架脚本：
+
+```html
+<head>
+  ...
+  <script src="https://unpkg.com/sfcjs"></script>
+</head>
+```
+
+第四步：在需要使用该组件的应用中引入：
 
 ```html
 <sfc-x src="https://my.cdn.com/my-component.htm"></sfc-x>
 ```
 
-It supports the following attributes:
+完成上面步骤，你就可以在放置 `sfc-x` 的位置看到组件的渲染结果。
 
-- src: the SFC file path, relative or absolute path both supported
-- passive: disable immediately rendering, you should must invoke `document.querySelector('sfc-x#app').mount()` to setup rendering
-- pending-slot: is to treat slot as pendding content before the SFC file loaded
-- attributes start with `:` or `data-` will be used as props to pass into SFC
-- attributes not start with `:` or `data-` are not related, which is just for current custom element
+## 自定义标签元素
 
-You can use `addEventListener` to listen the events which are emitted inside SFC. The parameter is a CustomEvent, you can read `event.detail` to get the emitted value.
+在 sfcjs 中，你需要通过 `<sfc-x>` 标签来启动一个组件。
 
 ```html
-<sfc-x src="..." pending-slot="1" passive="1" :prop1="{ name: 1 }" data-prop2="true" class="some">Loading...</sfc-x>
+<sfc-x src="https://my.cdn.com/my-component.htm"></sfc-x>
+```
+
+*由于 custom element 必须由-两个单词组成，因此在 `sfc` 后面加上 `x` 作为后缀，标签名为 `<sfc-x>`。*
+
+`sfc-x` 元素支持如下属性：
+
+- src: 组件相对于当前页面的相对路径或绝对路径（如果你的应用是 SPA，推荐使用绝对路径）
+- passive: 是否需要**禁用**立即渲染视图，这样可以方便有些情况下，你不想马上渲染组件效果。在某个动作之后需要手动调用 `document.querySelector('sfc-x#app').mount()` 来渲染视图
+- pending-slot: 是否使用传入的 slot 作为组件加载完成之前的预览信息，默认为 `0`，你可以传入 `pending-slot="1"` 来开启，开启后组件加载期间 slot 将被展示，可作为预加载提示界面
+- 以 `:` 或 `data-` 开头的属性将作为组件的 props 进行传入，这些属性的值必须是 JSON 字符串，内部才能正常解析。提供 `data-` 的选项是为了避免在 vue, react 中无法使用 `:` 开头的属性。
+- 其他不是 `:` 或 `data-` 开头的属性将和组件无关，是 custom element 的属性。
+
+`sfc-x` 元素可以通过 `addEventListener` 监听组件内抛出的事件，监听得到的是一个 CustomEvent，可通过 `event.detail` 属性读取组件内抛出的值。
+
+```html
+<sfc-x src="..." pending-slot="1" passive="1" :prop1="{ name: 1 }" data-prop2="true" class="some">这段内容会在一开始被展示出来，Loading...</sfc-x>
 
 <script>
   const some = document.querySelector('.some');
@@ -188,24 +149,38 @@ You can use `addEventListener` to listen the events which are emitted inside SFC
 </script>
 ```
 
-## Template Syntax
+## 在 worker 中编译
 
-- `{{ ... }}` is to generate string by given variables
-- `@` started attributes are events bindings, i.e. `@click="handle(event)"`
-- `:` started attributes are props passing, which pass real value, only work for sub components
-- `(..)` started attributes are directive
+默认编译过程是在主线程中，如果你希望通过 worker 线程来进行编译，从而避免编译过程占用主线程资源，你可以这样使用：
 
-**directives**
+```html
+<script src="https://unpkg.com/sfcjs/dist/index.js"></script>
+```
 
-- (if): `<div (if)="someVar === 1">`
-- (class): `<div class="default-class" (class)="age > 10 ? 'dynamic-class' : ''">`
-- (style): `<div style="color: red" (style)="age > 10 ? 'font-size: 12px' : ''">`
-- (src)、(href): `<img (src)="./xxx.jpg" />` `<a href="..">`. `src` and `href` will make the relative path to right absolute path. Notice, the values are string, not expression.
-- (repeat): `<div (repeat)="item,index in items" (key)="item.id">{{item.text}}</div>`. `index` is optional
-- (key): always works with `repeat`, to identify a node in a list
-- (bind): `<input (bind)="word" />` two way binding, only works for `<input>` `<textarea>` `<select>`. `<textarea (bind)="description"></textarea>`
+使用 `dist` 目录下的脚本文件即可开启 worker 模式。此时，引入框架的 `script` 标签上，支持如下属性：
 
-## Responsive Styles
+- worker-src: `<script src="https://unpkg.com/sfcjs/dist/index.js" worker-src="https://unpkg.com/sfcjs/dist/worker.js"></script>`, 默认可以不传，框架内部会基于 currentScript.src 自动读取当前目录下的脚本作为 worker.js 文件，但某些情况下，你的项目中 worker 文件的路径或文件名重新进行了修改，此时你可以传入自己改编过的 worker 文件来进行编译工作。
+
+## 模板语法
+
+模板语法主要有：
+
+- 将引用变量的表达式放在 `{{ ... }}` 中，在 html 中动态生成字符串
+- 以 `@` 开头的 html 属性表示事件绑定，和 vue 有点像，例如 `@click="xx(event)"`
+- 以 `:` 开头的html属性表示传给组件真实值（而非字符串），只对组件有用
+- 用 `(..)` 括起来的属性是指令(directive)，目前仅支持下文列出的指令，暂不支持自定义指令
+
+**指令**
+
+- (if): `<div (if)="someVar === 1">` 条件判断是否生成该块
+- (class): `<div class="default-class" (class)="age > 10 ? 'dynamic-class' : ''">` 样式类名，被合并到已有的 class 中
+- (style): `<div style="color: red" (style)="age > 10 ? 'font-size: 12px' : ''">` 样式表（字符串），被合并到已有的 sytle 中
+- (src)、(href): `<img (src)="./xxx.jpg" />` `src` 和 `href` 两个指令会根据真实路径读取到正确的路径，帮助你写代码时只关注当前组件，**注意：其值为字符串，而非变量。**
+- (repeat): `<div (repeat)="item,index in items" (key)="item.id">{{item.text}}</div>` 循环，`items` 是一个变量，这句话表示遍历 `items`，其中 `index` 是可选的
+- (key): 一般和 `repeat` 一起用，用以标记标签唯一性，确保变化时的顺序
+- (bind): `<input (bind)="word" />` 双向数据绑定，只对 `<input>` `<textarea>` `<select>` 有效，不要传入默认值，例如 `<textarea (bind)="description"></textarea>`（没有传默认值，bind 会默认填充）
+
+## 动态样式
 
 在 `<style>` 中可以直接引用 js 变量，当变量发生变化的时候，对应的样式值也发生变化。
 
@@ -252,7 +227,7 @@ var("{{ age + 'px' }}")
 
 对于某些直接饮用值的情况，在 css 语法支持的情况下，可以使用这种语法。注意，它不支持表达式的写法，双括号里面只能写变量名。
 
-**import**
+**引用宏**
 
 在样式中，支持使用宏来决定 AOT 打包时是否要打包对应的 css 文件。使用方法如下：
 
