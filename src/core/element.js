@@ -53,7 +53,7 @@ class SFC_Element extends HTMLElement {
     const passive = 'passive' in options ? options.passive : this.getAttribute('passive');
 
     // 这里使用了一个技巧，就是在一开始的时候，让slot存在，显示出内部信息，当需要挂载的时候清空
-    // 如果不做这个操作，那么当<sfc-x>挂载之后，就会立即清空内部的内容
+    // 如果不做这个操作，那么当<x-sfc>挂载之后，就会立即清空内部的内容
     // 这个能力仅对传入了src的有效，传入src的是真正用于入口的组件，没有传的是内部使用，不提供这个功能
     // 只有当调用mount之后，才会消失，如果开发者自己手动调用过程中想提前清空，也可以调用clear
     const pending = 'pendingSlot' in options ? options.pendingSlot : this.getAttribute('pending-slot');
@@ -178,8 +178,8 @@ export async function register(src, text, options) {
     metas.forEach((meta) => {
       const name = meta?.['@context'];
       const macro = macros?.[name];
-      const type = tag || macro?.type || meta?.['@type'];
       if (name === 'sfc:privilege') {
+        const type = tag || macro?.type || meta?.['@type'];
         const { props, events } = meta;
         privilege(type, {
           src: absUrl,
@@ -303,12 +303,12 @@ export async function privilege(tag, options, source) {
 
   // 避免一开始就出现内部元素
   let style = document.createElement('style');
-  style.textContent = 'sfc-x:not([pending-slot=1]) { display: none }';
+  style.textContent = 'x-sfc:not([pending-slot=1]) { display: none }';
   document.head.appendChild(style);
 
   // 完成注册，销毁临时变量
   const finish = () => {
-    customElements.define('sfc-x', SFC_Element);
+    customElements.define('x-sfc', SFC_Element);
     document.head.removeChild(style);
     style = null;
     deferers = null;
@@ -394,7 +394,7 @@ export async function privilege(tag, options, source) {
       });
     });
 
-    // 注册sfc-x元素
+    // 注册x-sfc元素
     // 使用Promise做到真正的提前加载
     if (deferers.length) {
       Promise.all(deferers).then(finish, finish);

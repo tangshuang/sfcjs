@@ -496,7 +496,7 @@ class Element {
 
     if (isInstanceOf(type, Component)) {
       // 先挂上去占位符一样
-      const node = document.createElement('sfc-x');
+      const node = document.createElement('x-sfc');
       // eslint-disable-next-line no-param-reassign
       neure.node = node;
       // eslint-disable-next-line no-param-reassign
