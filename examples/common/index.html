@@ -10,7 +10,7 @@
 
 <script src="../index.js"></script>
 
-<template id="t-button">
+<template id="x-button">
   <script>
     const props = await import('sfc:props');
   </script>
@@ -35,13 +35,13 @@
   <span>Loading...</span>
 </x-sfc>
 
-<t-button type="button" theme="success">按钮</t-button>
+<x-button type="button" theme="success">按钮</x-button>
 
 <macro-tag></macro-tag>
 
 <script>
   document.querySelector('x-sfc').addEventListener('grow', e => console.log(e.detail));
-  document.querySelector('t-button').addEventListener('mounted', function() {
+  document.querySelector('x-button').addEventListener('mounted', function() {
     setTimeout(() => {
       this.setAttribute('theme', 'error');
     }, 3000);
@@ -51,13 +51,13 @@
 <script>
   // 通过privilege实现高级的组件注册
   SFCJS.privilege(
-    't-button',
+    'x-button',
     {
       props: {
         type: 'type',
         theme: 'theme',
       },
     },
-    document.querySelector('#t-button'),
+    document.querySelector('#x-button'),
   );
 </script>

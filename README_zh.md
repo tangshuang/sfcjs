@@ -340,7 +340,7 @@ SFCJS 支持在当前 html 中使用 `link[rel=sfc]` 自动载入组件。例如
 
 ```js
 SFCJS.privilege(
-  't-button',
+  'x-button',
   {
     props: {
       type: 'type',
@@ -366,10 +366,10 @@ SFCJS.privilege(
 );
 ```
 
-之后，你就可以在你的应用任何地方（不必须是在 sfc 内）使用 `<t-button>` 作为按钮组件。
+之后，你就可以在你的应用任何地方（不必须是在 sfc 内）使用 `<x-button>` 作为按钮组件。
 
 ```html
-<t-button type="button" theme="error">提交</t-button>
+<x-button type="button" theme="error">提交</x-button>
 ```
 
 参数：

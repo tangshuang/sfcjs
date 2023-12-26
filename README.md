@@ -24,17 +24,17 @@ Light JIT frontend view driver javascript library.
 ```
 
 ```html
-<link rel="sfc" href="./some.htm" as="some-x">
-<some-x></some-x>
+<link rel="sfc" href="./some.htm" as="x-some">
+<x-some></x-some>
 ```
 
 ```html
 <head>
-  <template sfc as="some-x">
+  <template sfc as="x-some">
     component content
   </template>
 </head>
-<some-x></some-x>
+<x-some></x-some>
 ```
 
 ## Usage
@@ -338,7 +338,7 @@ Define a customElement.
 
 ```js
 SFCJS.privilege(
-  't-button',
+  'x-button',
   {
     props: {
       type: 'type',
@@ -365,7 +365,7 @@ SFCJS.privilege(
 ```
 
 ```html
-<t-button type="button" theme="error">Submit</t-button>
+<x-button type="button" theme="error">Submit</x-button>
 ```
 
 ```ts
@@ -391,7 +391,7 @@ declare function privilege(
 
 ```js
 SFCJS.privilege(
-  't-button',
+  'x-button',
   {
     src: './button.htm',
   },
